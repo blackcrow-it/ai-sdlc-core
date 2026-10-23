@@ -60,7 +60,10 @@ def validate_task(task, registry):
 def validate_repository(root=ROOT):
     errors = []
     must_exist = ['README.md','AGENTS.md','CLAUDE.md','docs/ORCA-SETUP.md',
-                  'docs/HANDOFF.md','policies/permissions.md','policies/quality-gates.md',
+                  'docs/HANDOFF.md','docs/ORCHESTRATOR-QUICKSTART.md',
+                  'docs/ORCHESTRATOR-SMOKE-PROMPT.md',
+                  'scripts/build_worker_spec.py','scripts/check_smoke_output.py',
+                  'policies/permissions.md','policies/quality-gates.md',
                   'policies/approval-rules.md','schemas/task.schema.json','schemas/artifact.schema.json']
     for rel in must_exist:
         if not (root / rel).is_file(): errors.append(f'Missing {rel}')

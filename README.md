@@ -1,4 +1,4 @@
-# Orca ADE – AI Software Development Organization (v1.0)
+# Orca ADE – AI Software Development Organization (v1.1 – Orchestrator Bootstrap)
 
 Bộ cấu hình **14 vai trò AI Agent**, **9 workflow SDLC**, **5 Agent Skills**, biểu mẫu,
 chính sách và script kiểm tra cấu hình. Repo này là **bộ quy tắc + nội dung hướng dẫn**;
@@ -65,5 +65,17 @@ python scripts/validate_repo.py --task /tmp/task-001.json
 - LLM review không thay thế CI, test runner, codeowner, branch protection và human approval.
 - Quyền thực tế do sandbox/CI/credentials triển khai, **không chỉ** do prompt quyết định.
 - Không tự tin báo hoàn thành khi thiếu bằng chứng hoặc công cụ thực thi bị lỗi.
+
+## Phase 2.1 – Kích hoạt Orchestrator
+
+Chạy thử **một** BA worker với giám sát Orca (có bước xác nhận trước dispatch):
+
+```bash
+python scripts/validate_repo.py
+python scripts/orca_preflight.py
+python scripts/build_worker_spec.py --role business-analyst
+```
+
+Đọc [Orchestrator Quickstart](docs/ORCHESTRATOR-QUICKSTART.md) và dán [Smoke Prompt](docs/ORCHESTRATOR-SMOKE-PROMPT.md) vào phiên Orchestrator trong Orca. Sau worker chạy xong kiểm tra `python scripts/check_smoke_output.py`. **Mẫu này chưa tự gọi Orca từ môi trường khác và chưa chạy Agent trên máy bạn.**
 
 Tài liệu tiếp theo: [thiết lập Orca](docs/ORCA-SETUP.md), [prompt khởi chạy](docs/BOOTSTRAP-PROMPT.md), [giao thức bàn giao](docs/HANDOFF.md).

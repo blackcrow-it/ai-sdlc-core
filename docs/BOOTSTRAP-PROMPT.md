@@ -1,3 +1,5 @@
+> Để kiểm thử Orchestrator bằng quy trình mới và chỉ một worker, ưu tiên xem [ORCHESTRATOR-QUICKSTART.md](ORCHESTRATOR-QUICKSTART.md) và [ORCHESTRATOR-SMOKE-PROMPT.md](ORCHESTRATOR-SMOKE-PROMPT.md). File này mô tả cách bootstrap tổng quát sau giai đoạn thử nghiệm.
+
 # Prompt mở phiên Orchestrator trong Orca
 
 Sao chép nội dung dưới đây vào một phiên Codex/Claude Code đặt tại repository này:
