@@ -100,7 +100,7 @@ def scope_command(core, task):
 def build_worker_spec(core, config, task):
     role = core.role(task['owner_agent'])
     core_refs = [role['role_file']] + [p['playbook'] for p in core.phases_owned_by(role['id'])] \
-        + list(POLICIES) + ['references/HANDOFF.md']
+        + list(POLICIES) + ['references/HANDOFF.md', 'references/DOCUMENTATION-CONTINUITY.md']
     for phase in core.phases_owned_by(role['id']):
         core_refs += phase['required_template_paths']
     skill = role['primary_skill']
@@ -112,6 +112,8 @@ def build_worker_spec(core, config, task):
         'acceptance_criteria': bullets(task['acceptance_criteria']),
         'test_seams': '; '.join(task.get('test_seams', [])) or '(none listed: the task has no code-level tests)',
         'scope_check': scope_command(core, task),
+        'documentation': documentation_summary(task),
+        'documentation_check': f'python "{core.script}" docs-check --task <contract-file-or-issue-body> --base <base-commit>',
         'deliverables': code_list(task['deliverables']),
         'input_artifacts': code_list(task.get('input_artifacts', []), '(none)'),
         'allowed_paths': code_list(task['scope']['allowed_paths']),
@@ -149,7 +151,8 @@ def build_smoke_spec(core, config):
 def _activation_values(core, config, agent):
     reads = ['references/OPERATING-CONTRACT.md', 'agents/orchestrator.md', 'agents/registry.json',
              'workflows/manifest.json', *POLICIES, 'references/HANDOFF.md',
-             'references/ROLE-ASSIGNMENT.md', 'references/ORCHESTRATOR-ACTIVATION.md', tracker_doc(config)]
+             'references/ROLE-ASSIGNMENT.md', 'references/ORCHESTRATOR-ACTIVATION.md',
+             'references/DOCUMENTATION-CONTINUITY.md', tracker_doc(config)]
     return {
         'core_version': core.version, 'core_root': core.root.as_posix(),
         'sdlc': f'python "{core.script}"',
@@ -181,6 +184,19 @@ def build_smoke_prompt(core, config, agent=None):
     return render(core.asset('prompts/smoke-orchestrator.md'), values)
 
 
+def documentation_summary(task):
+    documentation = task.get('documentation')
+    if documentation is None:
+        return 'UNASSESSED legacy contract: add documentation impact before execution or acceptance.'
+    lines = [documentation['assessment']]
+    for update in documentation['updates']:
+        lines.append(f'- `{update["path"]}`: {update["change"]} '
+                     f'(requirements: {code_list(update["requirement_ids"], "none; see assessment")})')
+    if not documentation['updates']:
+        lines.append('- No updates owned by this task; reviewer must verify the assessment and any linked documentation tasks.')
+    return '\n'.join(lines)
+
+
 def build_task_body(task):
     """Issue body for remote trackers: a readable summary plus the embedded contract,
     which stays the source of truth (`sdlc.py validate/spec --task` read it back)."""
@@ -194,6 +210,9 @@ def build_task_body(task):
         *[f'- [ ] {item}' for item in task['acceptance_criteria']],
         '',
         *(['### Test seams', *[f'- {seam}' for seam in task['test_seams']], ''] if task.get('test_seams') else []),
+        '### Documentation impact',
+        documentation_summary(task),
+        '',
         '### Scope',
         f'- Write only: {code_list(scope["allowed_paths"])}',
         f'- Forbidden: {code_list(scope["forbidden_actions"])}',

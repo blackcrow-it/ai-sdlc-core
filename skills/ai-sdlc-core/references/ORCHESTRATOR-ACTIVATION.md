@@ -48,6 +48,10 @@ orca orchestration check --wait --types "worker_done,escalation,question" --time
 ```
 - Spec của từng task do `sdlc.py spec --task <contract hoặc issue body>` sinh ra; dùng **nội dung đầy đủ**, không dùng đường dẫn.
 - Nếu tracker đã có task cho mục tiêu (ví dụ từ `/sdlc-plan`), Orchestrator dùng lại chúng làm DAG thay vì lập lại.
+- Áp dụng `references/DOCUMENTATION-CONTINUITY.md` cho project mới và feature: kiểm tra danh mục tài liệu chuẩn,
+  bổ sung task cập nhật PRD/SRS và tài liệu bị ảnh hưởng, phụ thuộc approval, quyền ghi và owner cho file dùng chung.
+- Chạy thêm `sdlc.py docs-check --task <contract> --base <base>` trước nghiệm thu từng task; reviewer kiểm tra nội
+  dung và truy vết. Đối soát tài liệu tích hợp và evidence sau các task trước nghiệm thu feature/release.
 - Trước khi chấp nhận `worker_done`: chạy `sdlc.py scope --task <contract> --base <base>` trong worktree của worker và giao review cho một worker khác (skill `sdlc-code-review`).
 - Code workers dùng worktree riêng (guide Orca 1.4.230: `--worktree new-child --name <name> --setup run`);
   smoke test tài liệu dùng `--worktree current`. Task phụ thuộc tạo bằng `task-create --spec ... --deps <json_array>`.

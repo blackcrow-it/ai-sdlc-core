@@ -13,6 +13,14 @@ CHANGE - acceptance criteria
 - Deliverables: {{deliverables}}
 - Test seams (test only through these public interfaces; a new seam needs the Orchestrator's agreement): {{test_seams}}
 
+DOCUMENTATION IMPACT (core `references/DOCUMENTATION-CONTINUITY.md`)
+{{documentation}}
+- Record the actual base commit before editing. Save/read the complete contract locally for the checks below;
+  a contract embedded in a remote issue is saved under the ignored runs directory per the tracker conventions.
+- Keep approved requirement IDs and canonical document paths; new impacts outside this contract go to the Orchestrator.
+- Read `docs/documentation-map.md` or the project's existing equivalent and the relevant canonical baseline
+  sections. Report a missing map/baseline; do not infer that a feature spec replaces the product requirements.
+
 OWNERSHIP & BOUNDARIES
 - You may write only: {{allowed_paths}}
 - Never modify (protected): {{protected_paths}}
@@ -29,6 +37,8 @@ PROJECT CONTEXT (`.ai-sdlc/project.json`)
 OBSERVABLE ACCEPTANCE - required checks (run exactly; record command, exit code and log path)
 {{required_checks}}
 - Scope check before `worker_done`: `{{scope_check}}` must pass (no changed path outside the allowed paths or inside a protected path).
+- Documentation check before `worker_done`: `{{documentation_check}}` must pass; substitute the actual contract path
+  and recorded base commit. A pass checks declared updates only; the reviewer verifies their meaning and completeness.
 - Report only what you actually ran; mark anything else `not_run` with the reason. Never fabricate exit codes or artifacts.
 - Hand off in the YAML format of core `references/HANDOFF.md` with `task_id: {{task_id}}` and `next_owner: {{reviewer_agent}}`.
 - Follow the current injected Orca supervised worker preamble. Send `worker_done` exactly once with an explicit `--outcome succeeded` or `failed`, the real task/dispatch IDs and a meaningful three-sentence summary.

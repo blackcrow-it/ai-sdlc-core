@@ -5,7 +5,7 @@ argument-hint: "Your situation, e.g. \"I have an SRS in Word\" or \"tests are fl
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 # AI SDLC help
@@ -66,9 +66,17 @@ Each role in `agents/registry.json` has a primary skill; `/sdlc-implement` and O
 
 ## Where things live
 
+Both main flows maintain the canonical project documents under core `references/DOCUMENTATION-CONTINUITY.md`.
+Setup inventories applicable artifacts; spec assesses impact on existing PRD/SRS, design, contracts, tests and guides;
+planning assigns updates and dependencies; task owners run `docs-check`; independent review and final integrated
+reconciliation verify semantic consistency and requirement-to-evidence links before feature acceptance. Feature
+specs supplement the product baseline. Legacy projects/tasks must assess missing documents instead of assuming
+that creating a new feature spec updates their SRS automatically.
+
 | What | Where |
 |---|---|
 | Project config | `.ai-sdlc/project.json` (only via `/sdlc-setup` or with approval in `/sdlc-retro`) |
+| Canonical document index / gaps | `docs/documentation-map.md` or the project's existing equivalent |
 | Brief, specs, research | `docs/brief.md`, `docs/specs/`, `docs/research/` (committed) |
 | Domain language and decisions | `GLOSSARY.md` (or `GLOSSARY-MAP.md`), `docs/adr/` |
 | Task contracts | Only the tracker chosen in setup: `.ai-sdlc/tasks/` (local) or one issue per task |

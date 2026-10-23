@@ -22,6 +22,9 @@
 ## Quality gate
 Implementation exists, built test-first at the task's test seams, focused checks pass, `sdlc.py scope` passes, changes traceable, independent three-axis review (`sdlc-code-review`) requested.
 
+Apply `references/DOCUMENTATION-CONTINUITY.md`: complete owned canonical document updates, run `sdlc.py docs-check`
+with the recorded base commit and hand off actual requirement-to-evidence links plus pending sibling updates.
+
 ## Exception / failure policy
 Parallel workers must use nonconflicting scope / worktrees.
 - Failed gates create a remediation task, not a silent advance.

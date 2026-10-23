@@ -3,7 +3,7 @@ name: sdlc-system-design
 description: Design software architecture, module interfaces, APIs and data models as deep modules at clean seams, compare real alternatives, record hard-to-reverse decisions as ADRs, and plan security boundaries, test seams, migration and rollback. Use for new systems, significant technical change, database design and architecture reviews.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 # System design
@@ -21,6 +21,10 @@ Call the Skill tool with "sdlc-codebase-design" first: use its vocabulary (modul
 5. **Choose the test seams.** For each module, the public interface its tests will exercise, highest first and as few as possible. These become the `test_seams` of the implementation tasks.
 6. **Plan change safely.** Schema migrations (expand-contract for anything with a wide blast radius), backwards compatibility, observability (logs, metrics, traces at the seams), rollout and rollback. Destructive migrations are forbidden without human approval.
 7. **Record decisions.** Call the Skill tool with "sdlc-domain-modeling" and write an ADR for each decision that is hard to reverse, surprising without context and the result of a real trade-off. ADRs that need the `tech_lead` stay `proposed` until that person accepts them.
+8. **Update canonical design documents.** Follow core `references/DOCUMENTATION-CONTINUITY.md` and the contract's
+   `documentation`: update owned architecture diagrams, API/data contracts, migration/rollback guidance and
+   requirement references at their canonical paths. Preserve prior decisions with superseding links. Report
+   out-of-scope impacts; run `SDLC docs-check --task <contract> --base <recorded base>` (`SDLC` is core `scripts/sdlc.py`).
 
 ## Output
 

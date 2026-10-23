@@ -10,6 +10,15 @@
 | Security | Secrets scan, dependency/authorization checks as applicable | Accept residual material risk |
 | Release | Immutable artifact, UAT where needed, staging smoke, rollback | Explicit production release approval |
 
+## Documentation gate (every project and change)
+
+Apply core `references/DOCUMENTATION-CONTINUITY.md` at Requirements, Planning, Implementation, Review and Release.
+The documentation map and impact assessment identify applicable baselines and gaps; tasks own all needed updates
+with real dependencies and verification. Both `sdlc.py scope` and `sdlc.py docs-check` must pass before task closure.
+Independent review checks semantic consistency, stable requirement IDs, actual traceability evidence and baseline
+approvals. Feature/release acceptance additionally requires reconciliation of the integrated documents and all
+owning tasks. Missing/stale required documents block closure; a named human exception is `waived`, never `pass`.
+
 ## Outcome semantics
 - `pass`: requirements met **with verifiable evidence**.
 - `fail`: verified failure; create fix task.

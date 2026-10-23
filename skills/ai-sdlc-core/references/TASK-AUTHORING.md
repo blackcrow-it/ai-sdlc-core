@@ -7,6 +7,11 @@ Shared rules for every skill that writes task contracts: /sdlc-task (one task), 
 A task contract is the **only** brief a worker gets. The worker explores the code fresh, possibly days later, so the
 contract must stay true while files move: it states **what** must be true when the task is done, not **how** to edit.
 
+For every new project or change, read `references/DOCUMENTATION-CONTINUITY.md` before slicing. Assess the canonical
+documentation map and the spec's impact table; every affected artifact must have an owning update task, scope,
+deliverable and acceptance criterion. Requirements updates precede dependent code; final evidence/document
+reconciliation blocks feature acceptance. Do this for one-task fixes and triage too, not only full SDLC Runs.
+
 ## Slicing: tracer bullets
 
 Break work into **tracer-bullet** tasks: vertical slices, not horizontal layers.
@@ -54,6 +59,7 @@ and warns about dependencies outside the set.
 | `scope.allowed_paths` | The write ceiling: as narrow as the change allows, inside the project's `scope.allowed_paths`, outside protected paths. It bounds the worker; it is not a list of edit instructions |
 | `acceptance_criteria` | Observable and independently checkable, Given/When/Then where it helps. "Login works" is not a criterion; "Given a locked account, when the user signs in with the right password, then sign-in is refused and the lock reason is shown" is |
 | `test_seams` | **Required for implementation roles** (frontend, backend, devops). The public interfaces the tests exercise, highest first, fewest possible, existing seams preferred; one line each on what it catches. Vocabulary: the `sdlc-codebase-design` skill |
+| `documentation` | Required for newly authored tasks: `assessment` plus owned `updates` (`path`, `change`, `requirement_ids`) per `references/DOCUMENTATION-CONTINUITY.md`. Empty updates need a justified no-impact decision or references to owning tasks; legacy omissions must be assessed before execution/acceptance |
 | `required_checks` | The project's configured commands that must pass (lint, typecheck, test, e2e, security as applicable) |
 | `deliverables` | What exists when done: source and tests, a document at a named path, a review report |
 | `input_artifacts` | Pointers to the brief, spec, SRS, ADRs, prototype branch or source issue the work comes from. Point, do not paste |
@@ -80,6 +86,8 @@ delivers, test seams. Use the round format of the `sdlc-grilling` skill and ask:
 - Does the granularity feel right (too coarse, too fine)?
 - Does each dependency genuinely gate its task?
 - Should any task be merged or split? Are the test seams the ones you expect?
+- Does every affected canonical document have an owner, scope and verification? Are baseline updates and final
+  traceability reconciliation correctly sequenced, including shared document writers?
 
 Iterate until the user approves. Without approval nothing is published.
 

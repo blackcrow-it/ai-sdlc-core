@@ -5,7 +5,7 @@ argument-hint: "Objective text, or path to a brief file"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 Become the supervised SDLC Orchestrator for the repository at the current working directory, in this session. Nothing needs to be copied into another session.
@@ -20,5 +20,10 @@ Become the supervised SDLC Orchestrator for the repository at the current workin
 5. **Stop** after presenting the plan. Only the user's message `APPROVE-SDLC-PLAN` (optionally limited to named tasks) authorizes Run, Task or worker creation. This skill invocation is not approval.
 6. After approval, follow the installed Orca guide for run-create, task-create with the complete rendered spec, worker-start, check, ack and release. Verify every `worker_done` against real artifacts, the outputs of the configured commands and `SDLC scope --task <contract> --base <base>` in the worker's worktree, and have a separate reviewer worker run the `sdlc-code-review` skill before any gate is accepted.
 7. Report per Task: Run, Task and Dispatch IDs, outcome, evidence, changed paths and blockers. Leave no settled worker unreleased.
+
+Across both new projects and existing feature plans, apply core `references/DOCUMENTATION-CONTINUITY.md`:
+inventory canonical documents, fill gaps, include assessed documentation updates in every contract, sequence
+baseline approval before dependent code and serialize shared document writers. Verify `SDLC docs-check` per task
+and final integrated reconciliation before feature/release acceptance; reuse plans only after checking this coverage.
 
 If Orca is unavailable, report the blocker and hand over a manual task plan. Never invent IDs, worker status, approvals or test results.

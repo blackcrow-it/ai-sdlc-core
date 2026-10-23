@@ -22,8 +22,15 @@ PRE-FLIGHT (read-only; do not create Run/Task/Dispatch yet)
 1. Run `{{sdlc}} doctor` and report every FAIL/WARN verbatim. If the config is invalid, the Git baseline is missing or Orca is unreachable, stop: report the blocker and provide a manual task plan. Never invent run IDs, worker status or test results.
 2. Confirm the runtime with `orca status --json`, then load the installed, version-matched guide with `orca skills get orchestration --full` using the same executable you will use for mutations. Check `--help` before using any flag you have not verified.
 3. Read the objective and the project configuration. Separate verified facts from assumptions; list open decisions with their human owner from `sdlc.approvers` (UNASSIGNED means the gate stays blocked).
+   Apply core `references/DOCUMENTATION-CONTINUITY.md`: read or plan the project's canonical documentation map,
+   assess all applicable categories and existing PRD/SRS baselines, and map the objective's impact to owned updates.
+   Missing baselines require tasks; unknown applicability needs a decision. Existing feature specs supplement the
+   canonical requirements. Reuse tracker plans only after checking documentation coverage too.
 4. List the tasks already in the `{{tracker}}` tracker (core `{{tracker_doc}}`). When they already cover the objective (for example a plan from /sdlc-plan), use them as the DAG and only add what is missing. Otherwise draft a task DAG limited to the enabled phases and roles, following core `references/TASK-AUTHORING.md`: tracer-bullet slices, prefactors first, expand-contract for wide refactors, only genuinely gating dependencies. Per task: owner, independent reviewer, dependencies, narrow `allowed_paths` inside the project write ceiling and outside protected paths, observable acceptance criteria in the vocabulary of `GLOSSARY.md`, `test_seams` for implementation roles, required checks taken from the project commands, deliverables, retry budget and human gates.
 5. Draft each contract with `{{sdlc}} task new --id TASK-... --title ... --role ...` and validate it with `{{sdlc}} validate --task <file>`; run the graph check over the whole DAG (`{{sdlc}} validate --task <a> --task <b> ...`). Task contracts live only in the `{{tracker}}` tracker: follow core `{{tracker_doc}}` to publish (blockers first), read back and number them. Render worker specs with `{{sdlc}} spec --task <file-or-issue-body>` (output in `{{runs_dir}}/specs/`).
+   Every contract has a reviewed `documentation` assessment and scoped owned updates. Sequence required baseline
+   updates/approval before dependent code; give shared document files one writer at a time. Plan final integrated
+   reconciliation after all feature slices and documentation tasks; it blocks feature/release acceptance.
 6. Present the plan, gates, budgets, agent provider (`{{agent}}`), worktree strategy (`{{worktree_strategy}}`, at most {{max_parallel_workers}} parallel workers) and risks. **STOP** for explicit approval. Only the message `APPROVE-SDLC-PLAN` (optionally restricted to named tasks) authorizes Orca mutations; this prompt itself is not approval.
 
 AFTER APPROVAL
@@ -31,6 +38,9 @@ AFTER APPROVAL
 2. Start a worker only when its dependencies are accepted and its gate passed. Code workers use separate worktrees; a reviewer is never the author of the reviewed change.
 3. Follow the installed orchestration guide for waits, questions, acknowledgements, `worker_done`, release/retain and recovery. A timeout is not proof of failure; never re-dispatch after an uncertain acknowledgement.
 4. Treat `worker_done` as a candidate only: verify artifacts, diffs, the real output of every required check and `{{sdlc}} scope --task <contract> --base <base commit>` in the worker's worktree. Then dispatch the contract's `reviewer_agent` as a separate worker running the `sdlc-code-review` skill (Spec, Standards and Risk axes). Record gate outcomes as pass / fail / blocked / not_run / waived (waivers only from the named human, with scope and expiry).
+   Also run `{{sdlc}} docs-check --task <contract> --base <base commit>`. The reviewer checks omitted impacts,
+   semantic consistency, canonical requirement-to-evidence links and actual baseline approvals. Before feature
+   acceptance, verify the reconciliation task against the integrated documents and all owning task outcomes.
 5. A failed gate creates a remediation task; after the retry budget is spent, escalate with evidence.
 6. Keep each task's status current in the tracker per `{{tracker_doc}}`: `ready` when approved, `in_progress` at dispatch, `submitted_for_review` at `worker_done`, then `accepted` or `changes_requested` at the gate. Comment the real Orca Task/Dispatch IDs and the evidence on the task.
 7. Report actual Run/Task/Dispatch IDs, changed paths, commands with exit codes, review outcome, risks, blockers and next owner per core `references/HANDOFF.md`.

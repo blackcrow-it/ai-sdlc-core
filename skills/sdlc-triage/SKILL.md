@@ -5,7 +5,7 @@ argument-hint: "What to look at, e.g. \"what needs attention\" or \"#42\""
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 Triage the issues that arrive on this project's tracker: bug reports and feature requests **you did not write**. Task issues (titled `TASK-NNN: ...` or labelled `sdlc`) are already agent-ready by construction; never triage them.
@@ -15,6 +15,8 @@ Triage the issues that arrive on this project's tracker: bug reports and feature
 - `<CORE>` is the `ai-sdlc-core` skill directory next to this skill's base directory (otherwise `.claude/skills`, `.agents/skills`, `~/.claude/skills`, `~/.agents/skills`). `SDLC` = `python "<CORE>/scripts/sdlc.py"`. Run `SDLC validate`; without a config, recommend /sdlc-setup and stop.
 - Use the tracker in `.ai-sdlc/project.json` with the commands of `<CORE>/references/trackers/<tracker.provider>.md`. With the `local` tracker there is no incoming queue: say so and stop.
 - Reference docs: [OUT-OF-SCOPE.md](OUT-OF-SCOPE.md) for the `.out-of-scope/` knowledge base; `<CORE>/references/TASK-AUTHORING.md` for writing task contracts.
+- When preparing an agent-ready contract, follow core `references/DOCUMENTATION-CONTINUITY.md`: assess affected
+  canonical documents, include `documentation`, and account for missing baselines or prerequisite approvals.
 
 Every comment or issue you post during triage starts with:
 

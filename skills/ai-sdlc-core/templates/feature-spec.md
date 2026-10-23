@@ -41,3 +41,19 @@ What this feature deliberately does not do.
 |---|---|---|
 
 ## Further notes
+
+## Documentation impact
+
+Follow core `references/DOCUMENTATION-CONTINUITY.md`. Link the project's documentation map and assess every
+category. Reuse existing canonical paths and stable requirement IDs; justify unaffected categories. Missing
+baselines and unknown impacts are open decisions with owners. Planning assigns every update to a task.
+
+| Category | Canonical document / section | Requirement IDs | Required change or no-impact reason | Owner / task (planned until assigned) | Verification |
+|---|---|---|---|---|---|
+
+## Traceability and baseline review
+
+- Canonical PRD/SRS and coverage matrix references:
+- Changed/added/retired requirements and source stories:
+- Baseline revision/status and required review/approval:
+- Final reconciliation owner and acceptance evidence (planned until executed):

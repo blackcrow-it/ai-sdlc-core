@@ -5,7 +5,7 @@ argument-hint: "TASK-NNN, issue number or Jira key (optional: pick from the fron
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 Carry out **one** task contract in the repository at the current working directory. One task per invocation: never start a sibling task, and clear the context (`/clear`) before the next one. Each contract is self-contained, so the previous task's context is disposable.
@@ -16,6 +16,8 @@ Carry out **one** task contract in the repository at the current working directo
 2. Follow `<CORE>/references/trackers/<tracker.provider>.md`. Without an argument, list the **frontier** (status `ready` or `changes_requested`, every dependency `accepted`) and ask which task to take. With an argument, read that task. If the reference is ambiguous, ask.
 3. Save the contract (remote trackers: the fetched issue body in `.ai-sdlc/runs/tasks/TASK-NNN.md`) and run `SDLC validate --task <file>`. State the task's ID and title.
 4. Stop and report instead of working when the contract is invalid, its status is not `ready` or `changes_requested`, a dependency is not `accepted`, or it has no `test_seams` while its owner is an implementation role.
+   Read core `references/DOCUMENTATION-CONTINUITY.md`. An unassessed legacy contract needs its `documentation`
+   assessment reviewed and recorded in the tracker before execution; resolve any new scope/dependency decisions.
 5. Run `SDLC spec --task <file> --stdout` and read the spec in full, then every reference file it lists. The spec is your brief: role, write ceiling, protected paths, forbidden actions, checks and handoff format.
 
 ## 2. Prepare the branch
@@ -35,6 +37,9 @@ Questions about requirements or scope go to the user in rounds of the `sdlc-gril
 1. Run every entry of `required_checks` with the configured commands, exactly as written. Record command, exit code and a log path for each. A check you could not run is `not_run` with the reason.
 2. Run `SDLC scope --task <file> --base <base commit>`. It must report no path outside `allowed_paths` and none inside a protected path.
 3. Map each acceptance criterion to the test or artifact that proves it.
+4. Complete the owned documentation updates and run `SDLC docs-check --task <file> --base <base commit>`.
+   Check canonical requirement-to-evidence links and report linked documentation tasks still pending; a structural
+   pass does not establish completeness or acceptance of the whole feature.
 
 ## 5. Independent review
 

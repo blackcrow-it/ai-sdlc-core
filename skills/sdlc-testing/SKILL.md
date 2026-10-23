@@ -3,7 +3,7 @@ name: sdlc-testing
 description: Plan and execute unit, integration, E2E, regression and security tests tied to acceptance criteria, judge test quality, reproduce defects with a red-capable loop, and give an evidence-based go/no-go. Use for QA, security testing, test reports and release validation.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 # Testing
@@ -18,6 +18,11 @@ Primary skill of the QA Engineer and Security Engineer. Inputs: acceptance crite
 4. **Run what is configured.** Use `commands.test`, `commands.e2e` and `commands.security` exactly as written; record environment, command, exit code and log path for each run.
 5. **Reproduce every defect.** For a failure whose cause is not obvious, call the Skill tool with "sdlc-debugging" and stop after its Phase 2: a red-capable command and a minimised repro are the defect report. File it with the steps, the expected and actual result, the command that goes red and the requirement it violates. Fixing it is a separate task.
 6. **Separate the outcomes.** `pass` only with a real run; `fail` with the repro; `blocked` with the missing prerequisite; `not_run` with the reason. Skipped and unavailable tests are listed distinctly, never folded into a pass.
+7. **Verify documentation continuity.** Read core `references/DOCUMENTATION-CONTINUITY.md` and compare the
+   documentation map/impact assessment with the integrated behavior. Update owned test plans and the canonical
+   requirement → criterion → task → test → actual evidence matrix; confirm references and revisions exist.
+   Report missing scope or stale documents to their owner. Run `SDLC docs-check --task <contract> --base <base>`
+   (`SDLC` is core `scripts/sdlc.py`); its structural pass cannot replace semantic review or human baseline approval.
 
 ## Output
 

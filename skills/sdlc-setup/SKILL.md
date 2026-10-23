@@ -5,7 +5,7 @@ argument-hint: "Optional: one line about the project"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 Set up AI SDLC Core in the repository at the current working directory. You run every command; never ask the user to type one.
@@ -47,9 +47,17 @@ Run `SDLC init` with the agreed answers: `--name --id --description --reply-lang
 
 Run `SDLC validate`. Fix each error by re-running init with `--force` and corrected flags. Do not hand-edit around the validator.
 
+Read core `references/DOCUMENTATION-CONTINUITY.md`. Reuse the project's documentation map or write
+`docs/documentation-map.md` from core `templates/documentation-map.md`, using existing artifact paths and assessed
+applicability. List missing/stale baselines as gaps for planning, with owners; mark future PRD/SRS/design/test/guide
+artifacts as planned. Setup does not fabricate requirements or approvals to fill the inventory.
+
 ## 5. Review and commit
 
-Show the user a short summary of the config plus `git diff --stat`. On their approval, commit only `.ai-sdlc/project.json AGENTS.md CLAUDE.md .gitignore` with the message `Adopt AI SDLC Core`. Orca worktrees are created from commits, so an uncommitted config is invisible to workers.
+Show the user a short summary of the config, documentation map/gaps and `git diff --stat`. On their approval,
+commit only `.ai-sdlc/project.json AGENTS.md CLAUDE.md .gitignore` and the documentation map written in step 4
+with the message `Adopt AI SDLC Core`. Orca worktrees are created from commits, so uncommitted inputs are invisible
+to workers.
 
 ## 6. Hand over
 

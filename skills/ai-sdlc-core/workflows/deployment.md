@@ -22,6 +22,10 @@
 ## Quality gate
 CI/gates pass; staging verified; rollback documented; production requires explicit human approval.
 
+Apply `references/DOCUMENTATION-CONTINUITY.md`: final integrated reconciliation is accepted, applicable release
+notes and user/operator/migration guidance match the build, and traceability/baseline approvals reference real
+revisions and evidence. Pending required documentation blocks release unless a named human records an exception.
+
 ## Exception / failure policy
 No destructive deployment without human approval.
 - Failed gates create a remediation task, not a silent advance.

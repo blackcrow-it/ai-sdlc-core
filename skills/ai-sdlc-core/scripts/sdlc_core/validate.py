@@ -18,6 +18,7 @@ CORE_FILES = [
     'assets/project/AGENTS.block.md', 'assets/project/CLAUDE.block.md',
     'assets/smoke/project-brief.md', 'templates/project-brief.md', 'templates/feature-spec.md',
     'templates/pull-request.md', 'references/TASK-AUTHORING.md',
+    'references/DOCUMENTATION-CONTINUITY.md', 'templates/documentation-map.md',
     *[f'references/trackers/{name}.md' for name in ('local', 'github', 'gitlab', 'jira', 'other')],
 ]
 
@@ -289,4 +290,23 @@ def validate_task(task, core, config=None):
         for guard in protected:
             if paths_overlap(path, guard):
                 errors.append(f'allowed_paths entry {path} overlaps protected path {guard}')
+    documentation = task.get('documentation')
+    if isinstance(documentation, dict):
+        assessment = documentation.get('assessment')
+        if isinstance(assessment, str) and len(assessment.strip()) < 10:
+            errors.append('documentation.assessment must explain the impact or why no update is needed')
+        updates, seen = documentation.get('updates'), set()
+        for update in updates if isinstance(updates, list) else []:
+            if not isinstance(update, dict) or not isinstance(update.get('path'), str):
+                continue  # malformed shapes are already reported by the schema
+            path = update['path']
+            if (not path or bad_relative_path(path) or any(c in path for c in '*?[]:\n\r\t\0')
+                    or any(part in ('', '.') for part in path.split('/'))):
+                errors.append(f'documentation path must be an exact repo-relative file: {path}')
+                continue
+            if path in seen:
+                errors.append(f'Duplicate documentation path: {path}')
+            seen.add(path)
+            errors += [f'documentation {problem}' for problem in scope_violations(
+                [path], [p for p in allowed if isinstance(p, str)] if isinstance(allowed, list) else [], protected)]
     return errors

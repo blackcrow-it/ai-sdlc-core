@@ -20,3 +20,12 @@ Commands, exit codes, versions, screenshots/logs references, incomplete test cov
 
 ## QA recommendation
 Pass / changes requested / blocked. Approval is not a substitute for required CI.
+
+## Documentation and traceability verification
+
+- Canonical coverage matrix and reviewed document revisions:
+- Changed requirement → acceptance criterion → task → test/manual method → actual result/evidence:
+- `docs-check` command, base commit, exit code and log path:
+- Missing/stale documents, broken links, unverified claims and their owners:
+
+Follow `references/DOCUMENTATION-CONTINUITY.md`. Structural checks do not establish semantic completeness.

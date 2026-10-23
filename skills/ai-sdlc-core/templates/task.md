@@ -23,5 +23,12 @@
 ## Required deliverables
 Paths for source, tests, review report and evidence.
 
+## Documentation impact
+
+Follow `references/DOCUMENTATION-CONTINUITY.md`. Record the contract's `documentation.assessment` and owned
+`updates` (exact path, change, requirement IDs), or justify no updates and link the owning documentation tasks.
+Include the documentation map and canonical requirement paths among inputs; include required updates in scope,
+deliverables and acceptance criteria. Record the base commit for `sdlc.py docs-check --task <contract> --base <base>`.
+
 ## Handoff
 Use `references/HANDOFF.md`. State evidence and limitations, not unsupported claims.

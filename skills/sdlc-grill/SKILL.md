@@ -5,7 +5,7 @@ argument-hint: "The plan, idea or change to sharpen"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 Call the Skill tool twice, for "sdlc-grilling" and "sdlc-domain-modeling", then grill the user about the plan they described.
@@ -19,3 +19,7 @@ When the frontier is empty and the user confirms the shared understanding, recom
 - a whole product or a change that needs every SDLC phase → `/sdlc-brief` (if there is no brief), then `/sdlc-orchestrate`.
 
 Keep this session's context until the spec or plan is written: the grilling is its primary source.
+
+For a feature/change, read the project's documentation map and relevant canonical PRD/SRS/contract sections per
+core `references/DOCUMENTATION-CONTINUITY.md`. Carry affected requirement IDs, baseline gaps and document impacts
+into the conversation so the next spec/plan accounts for them; unresolved impacts keep an owner and blocker.

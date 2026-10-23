@@ -176,6 +176,41 @@ Các role skill mà worker dùng cũng được siết lại:
 | `validate` một task | Task của frontend/backend/devops thiếu `test_seams` |
 | `validate --bundled` | Skill gọi Skill tool tới skill chỉ người dùng gọi được; `disable-model-invocation` lệch với `agents/openai.yaml`; skill thiếu `openai.yaml`; `/sdlc-help` không nhắc tới một skill |
 
+## Tài liệu xuyên suốt dự án và tính năng
+
+Mọi luồng đều áp dụng
+[`DOCUMENTATION-CONTINUITY.md`](skills/ai-sdlc-core/references/DOCUMENTATION-CONTINUITY.md), từ project mới đến
+feature, bug fix và release. `/sdlc-setup` lập danh mục tài liệu chuẩn tại `docs/documentation-map.md` (hoặc dùng
+danh mục hiện có): đường dẫn, owner, trạng thái, revision được review và khoảng trống. Các nhóm PRD/SRS, UI,
+kiến trúc/ADR, API/data, glossary, test/truy vết, hướng dẫn sử dụng/vận hành và release notes đều được đánh giá;
+nhóm không áp dụng phải có lý do. Repo cũ thiếu baseline có task bổ sung từ hành vi đã xác minh.
+
+Khi thêm tính năng, **feature spec bổ sung cho PRD/SRS; PRD/SRS vẫn phải được cập nhật ở phần bị ảnh hưởng**:
+
+| Bước | Trách nhiệm với tài liệu |
+|---|---|
+| `/sdlc-grill` → `/sdlc-spec` | Đọc baseline; lập bảng tác động: tài liệu/section, requirement ID, thay đổi hoặc lý do không tác động, owner, cách xác minh |
+| `/sdlc-plan`, `/sdlc-task`, `/sdlc-triage` | Giao mọi cập nhật cho task có scope, deliverable và tiêu chí rõ ràng; mỗi contract có `documentation.assessment` và `documentation.updates` |
+| Implementation / Orca worker | Cập nhật phần tài liệu được giao; chạy scope và `docs-check`; chuyển tác động ngoài scope về người điều phối |
+| QA / review độc lập | Kiểm tra nội dung nhất quán và liên kết nguồn → yêu cầu → tiêu chí → task → test → evidence thật |
+| Nghiệm thu feature/release | Đối soát tài liệu đã tích hợp sau mọi task, cập nhật kết quả test/hướng dẫn và xác nhận các approval cần thiết |
+
+Cập nhật/duyệt yêu cầu trước phần code phụ thuộc; evidence cuối cùng được hoàn thiện sau khi chạy test. Các task
+cùng sửa một tài liệu chuẩn phải có thứ tự hoặc một owner tích hợp. Giữ requirement ID ổn định, liên kết ID bị
+thay thế, ghi revision/change history; approval cũ chỉ có hiệu lực với revision đã duyệt. Không đóng feature khi
+còn tài liệu bắt buộc lỗi thời hoặc truy vết bị đứt.
+
+Engine có lệnh chỉ đọc:
+
+```bash
+python <core>/scripts/sdlc.py docs-check --task <contract> --base <base-commit>
+```
+
+Lệnh kiểm tra các file text đã cam kết cập nhật có tồn tại, có nội dung, thực sự đổi từ base và chứa requirement
+ID đã khai báo. Nó **không chứng minh nội dung đầy đủ/đúng** hoặc phát hiện mọi tài liệu bị bỏ sót: reviewer phải
+đối chiếu danh mục, tác động, baseline và evidence. Danh sách cập nhật rỗng cần lý do cụ thể hoặc liên kết task
+tài liệu chịu trách nhiệm; feature chỉ hoàn tất sau khi các task đó được đối soát.
+
 ## Task được lưu ở đâu
 
 Ngay lúc `/sdlc-setup`, bạn chọn **một** issue tracker. Task contract chỉ nằm ở đúng nơi đó, không có bản sao hay
@@ -247,6 +282,7 @@ Mọi lệnh nhận `-C <project-dir>` (mặc định thư mục hiện tại).
 | `task body --task F [--output F]` | Render nội dung issue có nhúng contract cho tracker từ xa |
 | `spec --task F` | Render worker spec tự chứa (role, policy, cấu hình dự án, phạm vi, test seam, lệnh scope check, checks) vào `.ai-sdlc/runs/specs/` |
 | `scope (--task F \| --allowed P ...) [--base REF]` | Exit 1 khi có file đổi nằm ngoài phạm vi task hoặc chạm protected path; base mặc định là merge-base với nhánh mặc định |
+| `docs-check --task F [--base REF]` | Kiểm tra assessment, file tài liệu cam kết cập nhật và requirement ID; cần review nội dung riêng |
 | `activate [--brief F] [--smoke] [--stdout] [--agent claude\|codex]` | Render prompt kích hoạt Orchestrator |
 | `smoke spec\|check` | Spec smoke test BA / kiểm tra tĩnh output |
 | `upgrade [--dry-run]` | Chuyển `core_version` của dự án lên core đã cài nếu tương thích, làm mới khối quản lý |
@@ -304,7 +340,7 @@ python skills/ai-sdlc-core/scripts/sdlc.py doctor --offline
 
 ## Phiên bản (Versioning)
 
-Bản hiện tại là **0.1.0**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
+Bản hiện tại là **0.1.1**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
 `metadata.version` của mọi `SKILL.md` trong gói; `sdlc.py validate --bundled` buộc các giá trị này khớp nhau.
 Mỗi dự án pin `core_version` trong `.ai-sdlc/project.json`. Quy tắc tương thích theo semver:
 
@@ -317,13 +353,22 @@ Mỗi dự án pin `core_version` trong `.ai-sdlc/project.json`. Quy tắc tươ
 
 Mỗi bản phát hành không tương thích phải kèm ghi chú nâng cấp trong mục này.
 
+### Nâng cấp 0.1.0 → 0.1.1
+
+Giữ `config_schema_version` là `0.1`; config pin `0.1.0` vẫn tương thích. Task schema bổ sung trường tùy chọn
+`documentation`, nên contract cũ vẫn đọc/validate được và có cảnh báo nếu chưa đánh giá tài liệu. Trước khi chạy
+hoặc nghiệm thu task cũ, bổ sung assessment/updates, review thay đổi scope/phụ thuộc và cập nhật đúng tracker;
+`docs-check` sẽ chặn contract chưa đánh giá. Draft mới chứa placeholder bắt buộc thay bằng quyết định thật.
+Không tự sửa config, baseline hay approval của project khi nâng cấp. Cài bản skill mới trước khi dùng luồng này;
+`sdlc.py upgrade` chỉ cập nhật pin/managed blocks khi được người dùng cho phép.
+
 ## Giới hạn quan trọng
 
 - Git worktree tách nhánh mã nguồn, **không cô lập quyền hệ điều hành/mạng/secrets**.
 - Không tự merge/deploy production, xóa dữ liệu, sửa secrets hoặc migration phá hủy.
 - LLM review không thay thế CI, test runner, codeowner, branch protection và human approval.
 - Quyền thực tế do sandbox/CI/credentials triển khai, **không** do prompt hay `project.json` quyết định.
-- `validate`/`scope`/`smoke check` là kiểm tra tĩnh; Orca không tự đọc `registry.json`/`manifest.json`.
+- `validate`/`scope`/`docs-check`/`smoke check` là kiểm tra tĩnh; Orca không tự đọc `registry.json`/`manifest.json`.
 - Đường dẫn core trong prompt/spec là đường dẫn tuyệt đối trên máy sinh ra chúng; sinh lại nếu chuyển máy.
 
 ## Ghi công

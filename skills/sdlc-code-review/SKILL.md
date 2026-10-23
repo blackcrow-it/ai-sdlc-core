@@ -3,7 +3,7 @@ name: sdlc-code-review
 description: Independently review the changes since a fixed point on three separate axes - Spec (does it do what the task contract asked, inside its scope?), Standards (does it follow the project's coding rules plus a code-smell baseline?) and Risk (correctness, security, compatibility, data, test quality) - with findings backed by evidence and a single approve or request-changes verdict. Use before accepting a task, merging a branch or releasing, or when asked to review a branch, PR or "changes since X".
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 # Code review
@@ -19,6 +19,11 @@ Use the base the task or user gives (a commit, branch, tag, `main`). Without one
 - **Spec source**, in order: the task contract named by the task or the commit messages (`TASK-NNN`, issue references), fetched with the tracker's "Read" recipe; a path the user gives; a spec under `docs/specs/` matching the branch. If none exists, the Spec axis reports "no spec available" instead of guessing.
 - **Standards sources**: `coding_rules.rules` and `coding_rules.files` in `.ai-sdlc/project.json`, plus `CODING_STANDARDS.md`, `CONTRIBUTING.md` and similar files when present, and the code-smell baseline in [SMELLS.md](SMELLS.md).
 - **Evidence**: CI results for the head commit, or run the contract's `required_checks` yourself with the configured commands. A claim in the author's handoff is not evidence until a check output backs it.
+- **Documentation**: read core `references/DOCUMENTATION-CONTINUITY.md`, the documentation map, impact assessment,
+  canonical baselines and changed requirement-to-evidence links. Run `SDLC docs-check --task <contract> --base <base>`.
+  Give these sources and the result to the Spec reviewer: check omitted impacts, no-impact reasoning, actual owned
+  updates, stable IDs, approvals/revisions and integrated reconciliation. Missing/stale required documentation or
+  broken traceability is a blocker/major finding; passing structural checks alone cannot justify approval.
 
 ## 3. Review the three axes separately
 

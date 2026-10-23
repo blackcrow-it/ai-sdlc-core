@@ -30,3 +30,11 @@ Technology, compliance, deadlines, dependencies, unresolved assumptions.
 
 ## 7. Sign-off
 Approver, decision and immutable reference to version.
+
+## 8. Change history and downstream requirements
+
+| Revision / commit | Source feature / task | Changed goal / feature / scope | SRS requirement refs | Review / approval reference |
+|---|---|---|---|---|
+
+Preserve feature IDs; link the canonical SRS and documentation map. Reassess scope/journey changes per core
+`references/DOCUMENTATION-CONTINUITY.md`. Previous sign-off covers only its referenced revision.

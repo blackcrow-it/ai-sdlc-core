@@ -22,6 +22,10 @@
 ## Quality gate
 Tasks have owner, genuine dependencies (graph check passes), file scope, test seams, reviewer and budget; every requirement maps to a task; critical path understood.
 
+Apply `references/DOCUMENTATION-CONTINUITY.md`: every applicable document impact has an owned task/update or
+reviewed no-impact reason, `documentation` is assessed in every contract, required baseline approvals precede
+dependent code, shared document writes are sequenced, and final integrated reconciliation blocks feature closure.
+
 ## Exception / failure policy
 Reject tasks without acceptance criteria.
 - Failed gates create a remediation task, not a silent advance.

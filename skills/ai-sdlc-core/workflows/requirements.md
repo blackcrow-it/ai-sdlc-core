@@ -23,6 +23,10 @@
 ## Quality gate
 Yêu cầu có nguồn gốc, user stories và acceptance criteria kiểm thử được; unresolved rules escalated.
 
+Apply `references/DOCUMENTATION-CONTINUITY.md`: create/update the applicable canonical PRD/SRS at their existing
+paths, stable IDs, revision/approval history and coverage matrix. Identify baseline gaps and downstream document
+impacts; a feature spec alone does not complete the requirements baseline.
+
 ## Exception / failure policy
 Requirements ambiguity must return to Product Owner.
 - Failed gates create a remediation task, not a silent advance.

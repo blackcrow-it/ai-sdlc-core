@@ -17,5 +17,7 @@ project-specific configuration; roles, workflows, policies, templates and schema
 - Domain language: `GLOSSARY.md` (or `GLOSSARY-MAP.md`) and decisions in `docs/adr/`, created lazily; use their terms.
 - Task contracts live only in the tracker named by `tracker` in `{{config}}`; the conventions are in core
   `references/trackers/<provider>.md`. Never keep a second copy elsewhere.
+- For every feature/change, follow core `references/DOCUMENTATION-CONTINUITY.md`: maintain applicable canonical
+  documents and requirement-to-evidence links; run `sdlc.py docs-check --task <contract> --base <base>` before closure.
 - One task per worker or session. Before reporting done, run the relevant `commands` from `{{config}}` and
   `sdlc.py scope --task <contract>`, and cite real changed paths and exit codes.

@@ -29,3 +29,8 @@ Tuyệt đối không ghi giả `exit_code: 0` hoặc artifact path. Nếu chạ
 
 Với task code, thêm vào `evidence`: kết quả `sdlc.py scope --task <contract>` (exit code), và với mỗi acceptance
 criterion là test nào chứng minh nó. Với bug fix, ghi giả thuyết nguyên nhân đã được xác nhận (skill `sdlc-debugging`).
+
+Với mọi task, thực hiện `references/DOCUMENTATION-CONTINUITY.md`: ghi đánh giá tác động tài liệu, đường dẫn/section
+chuẩn và requirement ID đã cập nhật (hoặc lý do không tác động đã được review), liên kết ma trận truy vết, revision
+được kiểm tra và các task tài liệu liên quan. Thêm lệnh `sdlc.py docs-check --task <contract> --base <base>` cùng exit
+code/log thật vào `evidence`. Liệt kê tài liệu hoặc approval còn thiếu với owner; không gọi chúng là hoàn tất.

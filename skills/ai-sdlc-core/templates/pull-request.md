@@ -17,6 +17,8 @@ a diff sketch of the shape that changed>
 - **Before:** <failing test run, wrong output or screenshot>
   **After:** <passing test run, correct output or screenshot>
 - Required checks: <command> → exit <code> (one line each, real runs only; anything not run is `not_run`)
+- Documentation: <canonical documents/sections and requirement IDs updated, or reviewed no-impact reason>
+- Traceability: <canonical requirement → task → test/evidence links; docs-check command and exit code>
 
 ## Merge danger
 

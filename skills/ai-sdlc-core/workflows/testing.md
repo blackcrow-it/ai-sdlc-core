@@ -22,6 +22,9 @@
 ## Quality gate
 Required checks pass or failures are triaged; blocker security issues resolved.
 
+Apply `references/DOCUMENTATION-CONTINUITY.md`: reconcile changed requirements with canonical acceptance criteria,
+test methods and actual run evidence at the reviewed revision; expose missing coverage, stale docs and `not_run`.
+
 ## Exception / failure policy
 Do not report PASS for skipped/not-run tests.
 - Failed gates create a remediation task, not a silent advance.

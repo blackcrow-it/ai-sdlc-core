@@ -117,6 +117,29 @@
       },
       "minItems": 1
     },
+    "documentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assessment", "updates"],
+      "description": "Documentation impact and updates owned by this task; legacy contracts may omit this field but cannot pass docs-check until assessed.",
+      "properties": {
+        "assessment": {"type": "string", "minLength": 10},
+        "updates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "change", "requirement_ids"],
+            "properties": {
+              "path": {"type": "string", "minLength": 1},
+              "change": {"type": "string", "minLength": 10, "pattern": "\\S"},
+              "requirement_ids": {"type": "array", "uniqueItems": true,
+                                  "items": {"type": "string", "minLength": 1, "pattern": "^\\S+$"}}
+            }
+          }
+        }
+      }
+    },
     "required_checks": {
       "type": "array",
       "items": {

@@ -3,7 +3,7 @@ name: sdlc-implementation
 description: Implement exactly one SDLC task contract in its worktree or task branch - test-first at the contract's test seams, inside allowed_paths, with the configured checks, a scope check and a review-ready handoff. Use when a frontend, backend or DevOps task is assigned, during feature development and bug fixes.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 # Implementation
@@ -24,10 +24,17 @@ Inside the task:
 
 1. **Baseline.** Check `git status`, the branch and the dependencies. Run the configured test command once before editing, so pre-existing failures are known and not blamed on you (record them).
 2. **Understand.** Read the contract, the `input_artifacts`, `GLOSSARY.md` and the ADRs in the area. Use glossary terms for names.
+   Read core `references/DOCUMENTATION-CONTINUITY.md` and the contract's `documentation` assessment. Confirm
+   required baseline updates are accepted before dependent code. Perform this task's owned updates and preserve
+   stable requirement IDs; unexpected impacts or missing write scope go to the user/Orchestrator.
 3. **Build test-first.** Call the Skill tool with "sdlc-tdd" and work one acceptance criterion at a time, as vertical slices, at the contract's `test_seams`. Run typecheck and the narrowed test command often; keep each red and green run as evidence.
 4. **When a check fails and the cause is not obvious**, call the Skill tool with "sdlc-debugging" instead of guessing.
 5. **Verify.** Run every `required_checks` entry with the configured commands in `.ai-sdlc/project.json` exactly as written, then the full test suite. Run the scope check (the command in your worker spec, or `SDLC scope --task <contract> --base <base commit>` in a session): it must pass. Map each acceptance criterion to the test that proves it.
 6. **Commit** to the task's branch or worktree with `TASK-NNN: <title>`; a bug fix states the confirmed root cause in the body. A pull request body follows core `templates/pull-request.md`. Never merge to a protected branch, force-push or bypass CI.
+
+Before commit/handoff, run `SDLC docs-check --task <contract> --base <recorded base commit>` and report its exit
+code plus the canonical requirement → criterion → task → test/evidence links. An empty update list needs a
+reviewed explanation; pending sibling documentation tasks remain pending in the handoff.
 
 ## Output
 

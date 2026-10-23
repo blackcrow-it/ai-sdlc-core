@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from .core import Core
+from .documentation import check_documentation
 from .environment import install_skills, install_targets, run_doctor, upgrade_project
 from .project import (APPROVER_ROLES, COMMAND_KEYS, TRIAGE_ROLES, changed_paths, init_project, load_config,
                       refresh_blocks, validate_config, write_text)
@@ -146,6 +147,9 @@ def cmd_validate(core, args):
     tasks = [load_task(task_path) for task_path in args.task]
     for task_path, task in zip(args.task, tasks):
         problems += [f'{task_path}: {e}' for e in validate_task(task, core, config)]
+        if isinstance(task, dict) and 'documentation' not in task:
+            warnings.append(f'{task_path}: legacy contract has no documentation assessment; '
+                            'add it before execution/acceptance (docs-check will fail).')
     if len(tasks) > 1:
         graph_errors, graph_warnings = validate_task_graph(tasks)
         problems += graph_errors
@@ -203,6 +207,8 @@ def cmd_task_new(core, args):
         'acceptance_criteria': ['REPLACE with observable behavior and verification'],
         **({'test_seams': ['REPLACE with the public interface the tests exercise']}
            if args.role in implementation_roles(core) else {}),
+        'documentation': {'assessment': 'REPLACE with affected canonical documents or a justified no-impact decision',
+                          'updates': []},
         'required_checks': cmds['lint'] + cmds['typecheck'] + cmds['test'],
         'deliverables': ['REPLACE_WITH_REAL_OUTPUT'],
         'max_attempts': config['sdlc']['default_max_attempts'], 'human_approval_required': True,
@@ -270,6 +276,29 @@ def cmd_scope(core, args):
         print(f'Result: FAIL - {len(problems)} path(s) outside the task scope.')
         return 1
     print('Result: OK - every changed path is inside allowed_paths and outside protected paths.')
+    return 0
+
+
+def cmd_docs_check(core, args):
+    """Verify the documentation promises in one task against its actual worktree."""
+    d = _project_dir(args)
+    config = _valid_config_or_exit(core, d)
+    task = load_task(args.task)
+    problems = validate_task(task, core, config)
+    if not problems:
+        try:
+            base, paths = changed_paths(d, args.base, config['project']['default_branch'], final_state=True)
+        except ValueError as exc:
+            problems.append(str(exc))
+        else:
+            print(f'DOCUMENTATION base {base}: {task["task_id"]}')
+            problems += check_documentation(task, d, paths)
+    for problem in problems:
+        print(f'FAIL: {problem}')
+    if problems:
+        return 1
+    print('OK: declared documentation files were updated and declared requirement IDs are present.')
+    print('NOTE: semantic review must verify completeness, no-impact reasoning, traceability and approvals.')
     return 0
 
 
@@ -420,6 +449,11 @@ def build_parser():
                 'protected paths (committed, staged, unstaged and untracked changes)')
     p.add_argument('--task', help='task contract file or issue body')
     p.add_argument('--allowed', action='append', default=[], metavar='PATTERN', help='allowed path glob (repeatable)')
+    p.add_argument('--base', help='base commit (default: merge-base with the project default branch)')
+
+    p = command('docs-check', cmd_docs_check, 'check promised documentation updates and requirement IDs '
+                '(structural only; semantic review is required)')
+    p.add_argument('--task', required=True, help='task contract file or issue body')
     p.add_argument('--base', help='base commit (default: merge-base with the project default branch)')
 
     p = command('spec', cmd_spec, 'render a self-contained Orca worker task spec from a task contract')

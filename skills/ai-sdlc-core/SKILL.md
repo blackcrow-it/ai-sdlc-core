@@ -3,7 +3,7 @@ name: ai-sdlc-core
 description: AI SDLC Core - reusable multi-agent SDLC package (14 roles, 9 workflows, policies, templates, schemas) with a Bootstrap CLI. Use when setting up AI SDLC in a repository (".ai-sdlc/project.json", "init sdlc"), validating that config, creating task contracts or Orca worker specs, or activating/acting as the SDLC Orchestrator or an SDLC worker role in Orca ADE.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 # AI SDLC Core
@@ -52,9 +52,14 @@ every task operation; `sdlc.py task body` renders the issue body that embeds the
 `references/TASK-AUTHORING.md`: tracer-bullet slices, genuine blocking edges, observable criteria, `test_seams` for
 implementation roles.
 
+Every project/change follows `references/DOCUMENTATION-CONTINUITY.md`: inventory canonical documents, assess
+PRD/SRS and downstream impacts, plan owned updates and final reconciliation, and verify actual requirement-to-test
+evidence before acceptance. New contracts include `documentation`; `docs-check --task <contract> --base <base>`
+enforces declared updates structurally while independent review checks semantic completeness and approvals.
+
 ## Engine commands (used by the workflow skills, CI and power users)
 `version`, `where`, `install`, `init`, `validate [--task ...]`, `doctor`, `task new`, `task body`, `spec --task`,
-`scope --task|--allowed [--base]`, `activate [--brief] [--smoke] [--stdout]`, `smoke spec|check`, `upgrade`;
+`scope --task|--allowed [--base]`, `docs-check --task [--base]`, `activate [--brief] [--smoke] [--stdout]`, `smoke spec|check`, `upgrade`;
 `--help` on each. `init` infers commands only from repository evidence and prints each `DETECTED` source; `validate`
 enforces the schema and invariants (several `--task` also check the dependency graph); `scope` fails when a changed
 path leaves the task's `allowed_paths` or touches a protected path; `activate` renders the Orchestrator prompt.

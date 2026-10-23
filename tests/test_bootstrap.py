@@ -125,7 +125,9 @@ class RenderTests(ProjectTestCase):
         self.assertIn('REPLACE', out)
         self.assertIn('REPLACE', task['test_seams'][0])
         task.update(acceptance_criteria=['POST /orders returns 201'], deliverables=['src/orders/'],
-                    test_seams=['POST /orders HTTP endpoint'])
+                    test_seams=['POST /orders HTTP endpoint'],
+                    documentation={'assessment': 'Implements the already approved orders contract with no requirement change.',
+                                   'updates': []})
         task['scope']['allowed_paths'] = ['src/orders/**']
         task_file.write_text(json.dumps(task))
         code, out = self.cli('spec', '--task', str(task_file))

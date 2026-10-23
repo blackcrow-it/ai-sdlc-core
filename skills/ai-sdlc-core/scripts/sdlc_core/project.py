@@ -150,28 +150,30 @@ def detect_stack(project_dir):
     return found
 
 
-def _git(project_dir, *args):
+def _git(project_dir, *args, strip_output=True):
     try:
         cp = subprocess.run(['git', *args], cwd=project_dir, capture_output=True, text=True, encoding='utf-8',
                             errors='replace', timeout=15, check=False)
     except (OSError, subprocess.TimeoutExpired):
         return None
-    return cp.stdout.strip() if cp.returncode == 0 else None
+    return (cp.stdout.strip() if strip_output else cp.stdout) if cp.returncode == 0 else None
 
 
-def changed_paths(project_dir, base=None, default_branch='main'):
+def changed_paths(project_dir, base=None, default_branch='main', final_state=False):
     """Paths changed since `base` (default: merge-base with the default branch): committed, staged,
-    unstaged and untracked. Returns (base, sorted paths) or raises ValueError when Git cannot answer."""
+    unstaged and untracked. Returns (base, sorted paths) or raises ValueError when Git cannot answer.
+    With final_state, compare the current working tree to base rather than unioning intermediate edits."""
     base = base or _git(project_dir, 'merge-base', 'HEAD', default_branch)
     if not base or _git(project_dir, 'rev-parse', '--verify', '--quiet', f'{base}^{{commit}}') is None:
         raise ValueError(f'cannot resolve the base commit {base or "(merge-base with " + default_branch + ")"}; pass --base')
     paths = set()
-    for args in (('diff', '--name-only', f'{base}...HEAD'), ('diff', '--name-only', 'HEAD'),
-                 ('ls-files', '--others', '--exclude-standard')):
-        out = _git(project_dir, *args)
+    tracked = (('diff', '--name-only', '-z', base),) if final_state else (
+        ('diff', '--name-only', '-z', f'{base}...HEAD'), ('diff', '--name-only', '-z', 'HEAD'))
+    for args in (*tracked, ('ls-files', '-z', '--others', '--exclude-standard')):
+        out = _git(project_dir, *args, strip_output=False)
         if out is None:
             raise ValueError(f'git {" ".join(args)} failed')
-        paths.update(line.strip() for line in out.splitlines() if line.strip())
+        paths.update(path for path in out.split('\0') if path)
     return base, sorted(paths)
 
 

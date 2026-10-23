@@ -3,7 +3,7 @@ name: sdlc-domain-modeling
 description: Build and sharpen the project's domain model while you design - challenge fuzzy or conflicting terms, stress-test them with edge-case scenarios, and update GLOSSARY.md and ADRs inline. Use when discussing domain terminology, writing or editing GLOSSARY.md, or recording or editing an architecture decision (ADR).
 metadata:
   package: ai-sdlc-core
-  version: "0.1.0"
+  version: "0.1.1"
 ---
 
 Actively build the project's domain model as decisions are made. This is the _active_ discipline: challenging terms, inventing edge-case scenarios and writing the glossary and decisions down the moment they crystallise. Merely _reading_ `GLOSSARY.md` for vocabulary is a habit every SDLC role already has; this skill is for when the model changes.

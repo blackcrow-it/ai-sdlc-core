@@ -26,6 +26,10 @@
   "test_seams": [
     "POST /auth/login HTTP endpoint (catches credential, session and error-shape regressions; misses token internals)"
   ],
+  "documentation": {
+    "assessment": "Implements the already approved login requirements without changing public behavior; this code slice owns no baseline changes. The feature reconciliation task must link its actual tests and evidence before feature acceptance.",
+    "updates": []
+  },
   "required_checks": [
     "lint",
     "unit_tests",
