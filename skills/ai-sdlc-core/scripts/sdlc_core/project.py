@@ -158,6 +158,16 @@ def _git(project_dir, *args):
     return cp.stdout.strip() if cp.returncode == 0 else None
 
 
+def suggest_tracker(project_dir):
+    """Suggest (provider, project, evidence) from the origin remote; the user confirms the choice."""
+    url = _git(project_dir, 'remote', 'get-url', 'origin') or ''
+    match = re.search(r'(github\.com|gitlab[^/:]*)[/:]([^\s]+?)(?:\.git)?$', url)
+    if not match:
+        return 'local', None, 'no GitHub/GitLab origin remote'
+    provider = 'github' if match.group(1) == 'github.com' else 'gitlab'
+    return provider, match.group(2), f'origin remote on {match.group(1)}'
+
+
 def detect_default_branch(project_dir):
     remote_head = _git(project_dir, 'symbolic-ref', '--short', 'refs/remotes/origin/HEAD')
     if remote_head:
@@ -221,6 +231,11 @@ def build_config(core, project_dir, opts=None):
             'default_max_attempts': 2,
             'release_environments': ['staging'],
         },
+        'tracker': {
+            'provider': opts.get('tracker') or 'local',
+            'project': opts.get('tracker_project'),
+            'notes': opts.get('tracker_notes') or '',
+        },
         'orca': {
             'agent': opts.get('agent') or 'claude',
             'worktree_strategy': 'per-task',
@@ -228,7 +243,13 @@ def build_config(core, project_dir, opts=None):
         },
         'extra_policies': list(opts.get('extra_policies') or []),
     }
-    return config, detected['evidence']
+    evidence = list(detected['evidence'])
+    if not opts.get('tracker'):
+        provider, project, why = suggest_tracker(d)
+        if provider != 'local':
+            evidence.append(f'tracker suggestion: `--tracker {provider} --tracker-project {project}` <- {why} '
+                            '(config keeps `local` until the user chooses)')
+    return config, evidence
 
 
 def validate_config(config, core, project_dir=None):
@@ -276,6 +297,11 @@ def validate_config(config, core, project_dir=None):
         warnings.append('No lint/typecheck command configured: implementation gate relies on tests only')
     if not any(sdlc['approvers'].values()):
         warnings.append('No human approvers named: gates that need approval will stay blocked')
+    tracker = config['tracker']
+    if tracker['provider'] == 'jira' and not tracker['project']:
+        errors.append('tracker.project must be the Jira project key when tracker.provider is jira')
+    if tracker['provider'] == 'other' and len(tracker['notes'].strip()) < 20:
+        errors.append('tracker.notes must describe the workflow (create, read, status, comment) when provider is other')
     if config['orca']['worktree_strategy'] == 'current':
         warnings.append('orca.worktree_strategy=current is only appropriate for doc-only smoke tests')
     return errors, warnings

@@ -39,7 +39,7 @@ Mở phiên Claude Code hoặc Codex của repository trong Orca, rồi gõ:
 | Slash command | Tác dụng |
 |---|---|
 | `/sdlc-brief <ý tưởng>` | Agent hỏi bạn từng vòng về mục tiêu, người dùng, phạm vi MVP, tiêu chí thành công, ràng buộc; điều chưa chắc ghi thành *Open decisions*; viết `docs/brief.md` theo `templates/project-brief.md`, commit sau khi bạn duyệt |
-| `/sdlc-setup` | Agent dò stack từ repo, phỏng vấn bạn theo từng vòng (câu hỏi đánh số, kèm đề xuất) về kiến trúc, lệnh test, quy tắc coding, phạm vi, người phê duyệt; ghi và validate `.ai-sdlc/project.json`, commit sau khi bạn đồng ý |
+| `/sdlc-setup` | Agent dò stack từ repo, phỏng vấn bạn theo từng vòng (câu hỏi đánh số, kèm đề xuất) về kiến trúc, lệnh test, quy tắc coding, phạm vi, người phê duyệt, **issue tracker**; ghi và validate `.ai-sdlc/project.json`, commit sau khi bạn đồng ý |
 | `/sdlc-status` | Báo cáo chỉ đọc: core, skill, config, Git baseline, Orca, task, Run đang chạy, và lệnh nên dùng tiếp theo |
 | `/sdlc-smoke` | Chứng minh điều phối Orca chạy được: giám sát một worker BA, dừng chờ `START-ORCA-SMOKE-TEST` |
 | `/sdlc-task <mục tiêu>` | Tạo một task contract đã validate và worker spec tự chứa, không dispatch |
@@ -100,6 +100,25 @@ flowchart TD
 Bạn chỉ có hai câu lệnh phê duyệt cố định: `START-ORCA-SMOKE-TEST` cho smoke test và `APPROVE-SDLC-PLAN` cho kế hoạch thật.
 Có thể duyệt một phần, ví dụ `APPROVE-SDLC-PLAN TASK-001 TASK-002`. Không có hai câu này, agent chỉ đọc và đề xuất.
 
+### Task được lưu ở đâu
+
+Ngay lúc `/sdlc-setup`, bạn chọn **một** issue tracker. Task contract chỉ nằm ở đúng nơi đó, không có bản sao hay
+cơ chế đồng bộ. Nếu repo có remote GitHub hoặc GitLab, agent sẽ đề xuất tracker tương ứng.
+
+| `tracker.provider` | Task nằm ở | Công cụ agent dùng |
+|---|---|---|
+| `local` (mặc định) | `.ai-sdlc/tasks/TASK-NNN.json`, commit cùng repo | – |
+| `github` | Mỗi task là một GitHub issue `TASK-NNN: …`, nhãn `sdlc`, `sdlc:<status>`, `role:<owner>` | `gh` |
+| `gitlab` | Mỗi task là một GitLab issue, nhãn như GitHub | `glab` |
+| `jira` | Mỗi task là một Jira issue trong project `tracker.project` | `orca jira` (kết nối Jira trong Orca) |
+| `other` | Theo quy trình bạn mô tả trong `tracker.notes` (Linear, Azure Boards…) | Theo mô tả |
+
+Với tracker từ xa, nội dung issue do `sdlc.py task body` render. Nó gồm phần tóm tắt dễ đọc và **contract nhúng** giữa
+hai dòng `BEGIN/END AI-SDLC TASK CONTRACT`. Contract nhúng là nguồn sự thật: engine validate và render spec trực tiếp
+từ nội dung issue đọc về. Cách tạo, đọc, đổi trạng thái, comment bằng chứng và gắn worktree Orca cho từng tracker
+nằm trong `skills/ai-sdlc-core/references/trackers/<provider>.md`. Mọi skill đều làm theo các file này.
+`doctor` kiểm tra CLI của tracker đã được cài và đăng nhập hay chưa.
+
 ### Bên trong `/sdlc-orchestrate`
 
 Orchestrator chạy theo 9 phase của `workflows/manifest.json`, giới hạn trong `sdlc.enabled_phases` của dự án. Mỗi worker
@@ -123,7 +142,9 @@ Với mỗi task, vòng lặp như sau:
 2. Worker gửi `worker_done`.
 3. Orchestrator tự đọc diff, artifact và chạy lại các lệnh trong `commands`.
 4. Gate được ghi `pass`, `fail`, `blocked`, `not_run` hoặc `waived`; chỉ người phê duyệt có tên mới được `waived`.
-5. Orchestrator release worker, rồi mới mở task phụ thuộc.
+5. Orchestrator cập nhật trạng thái task trên tracker (`in_progress` → `submitted_for_review` → `accepted` hoặc
+   `changes_requested`) và comment Run/Task/Dispatch ID thật cùng bằng chứng.
+6. Orchestrator release worker, rồi mới mở task phụ thuộc.
 
 Gate cần quyết định của con người sẽ dừng lại hỏi đúng người trong `sdlc.approvers`. Vai trò để `null` thì gate đó bị chặn.
 Production không bao giờ được deploy tự động.
@@ -137,11 +158,12 @@ Mọi lệnh nhận `-C <project-dir>` (mặc định thư mục hiện tại).
 |---|---|
 | `version`, `where [--json]` | Phiên bản và đường dẫn core đã cài (các đường dẫn `agents/...`, `policies/...` trong tài liệu core tính từ đây) |
 | `install` | Copy 12 skill vào thư mục skill của agent (offline) |
-| `init` | Tạo `.ai-sdlc/project.json`, khối quản lý `AGENTS.md`/`CLAUDE.md`, ignore `.ai-sdlc/runs/` (`--approver ROLE=NAME`, `--dry-run`, `--force`, `--no-detect`, `--no-agent-files`) |
-| `validate [--task F] [--core-only] [--bundled]` | Kiểm tra toàn vẹn core, config dự án (schema + quy tắc) và task contract |
+| `init` | Tạo `.ai-sdlc/project.json`, khối quản lý `AGENTS.md`/`CLAUDE.md`, ignore `.ai-sdlc/runs/` (`--tracker`, `--tracker-project`, `--tracker-notes`, `--approver ROLE=NAME`, `--dry-run`, `--force`, `--no-detect`, `--no-agent-files`) |
+| `validate [--task F] [--core-only] [--bundled]` | Kiểm tra toàn vẹn core, config dự án (schema + quy tắc) và task contract (`F` là file JSON hoặc nội dung issue đã tải về) |
 | `doctor [--offline] [--json]` | Kiểm tra sẵn sàng, chỉ đọc; exit 1 khi có FAIL |
-| `task new --id --title --role` | Tạo task contract nháp trong `.ai-sdlc/tasks/`, điền sẵn checks/forbidden actions từ config |
-| `spec --task F` | Render worker spec tự chứa (role, policy, cấu hình dự án, phạm vi, checks) vào `.ai-sdlc/runs/specs/` |
+| `task new --id --title --role` | Tạo task contract nháp, điền sẵn checks/forbidden actions từ config. Tracker `local` ghi vào `.ai-sdlc/tasks/`; tracker khác ghi vào `.ai-sdlc/runs/tasks/` (nháp, chưa publish) |
+| `task body --task F [--output F]` | Render nội dung issue có nhúng contract cho tracker từ xa |
+| `spec --task F` | Từ file JSON hoặc nội dung issue, render worker spec tự chứa (role, policy, cấu hình dự án, phạm vi, checks) vào `.ai-sdlc/runs/specs/` |
 | `activate [--brief F] [--smoke] [--stdout] [--agent claude\|codex]` | Render prompt kích hoạt Orchestrator |
 | `smoke spec\|check` | Spec smoke test BA / kiểm tra tĩnh output |
 | `upgrade [--dry-run]` | Chuyển `core_version` của dự án lên core đã cài nếu tương thích, làm mới khối quản lý |
@@ -161,6 +183,7 @@ Schema: [`project.schema.json`](skills/ai-sdlc-core/schemas/project.schema.json)
 | `coding_rules` | Quy tắc coding và file quy tắc (`CONTRIBUTING.md`…) |
 | `scope` | `in_scope`/`out_of_scope` chức năng, `allowed_paths` (trần ghi), `protected_paths`, `forbidden_actions` bổ sung |
 | `sdlc` | Phase/role được bật, người phê duyệt, retry mặc định, môi trường release |
+| `tracker` | Nơi duy nhất lưu task: `local`, `github`, `gitlab`, `jira`, `other`; `project` (owner/repo, group/project, Jira key), `notes` |
 | `orca` | Agent (`claude`/`codex`), chiến lược worktree, số worker song song |
 | `extra_policies` | Policy riêng của dự án (chỉ bổ sung ràng buộc) |
 

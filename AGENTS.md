@@ -35,5 +35,7 @@ project-specific configuration; roles, workflows, policies, templates and schema
 - Workflow: `/sdlc-brief <idea>` (write `docs/brief.md`), `/sdlc-status` (readiness), `/sdlc-task <goal>` (task contract + spec), `/sdlc-smoke` (prove Orca),
   `/sdlc-orchestrate <objective>` (act as Orchestrator; stop for `APPROVE-SDLC-PLAN`). Agents run the engine
   `sdlc.py` themselves; workers receive self-contained specs rendered by `sdlc.py spec`.
+- Task contracts live only in the tracker named by `tracker` in `.ai-sdlc/project.json`; the conventions are in core
+  `references/trackers/<provider>.md`. Never keep a second copy elsewhere.
 - Before reporting done, run the relevant `commands` from `.ai-sdlc/project.json` and cite real changed paths and exit codes.
 <!-- ai-sdlc-core:end -->

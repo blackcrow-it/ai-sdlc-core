@@ -20,7 +20,9 @@ Write one task contract for the work the user described. Do not create Orca Runs
    - dependencies: existing task IDs only;
    - deliverables, risk and priority.
    Show the draft as one round of numbered decisions, each with your recommendation, and wait for the user.
-4. Use the next free `TASK-NNN` id in `.ai-sdlc/tasks/`. Run `SDLC task new --id <id> --title "<title>" --role <owner> [--reviewer <role>]`. Replace every `REPLACE` placeholder in the JSON with the agreed values, then run `SDLC validate --task <file>` until it passes.
-5. Run `SDLC spec --task <file>` and give the user the spec path, plus a two-line summary of the task's scope and checks.
+4. Read `<CORE>/references/trackers/<tracker.provider>.md`. Task contracts live only in that tracker; follow its recipes for every step below.
+5. Take the next free `TASK-NNN` id as that document describes. Run `SDLC task new --id <id> --title "<title>" --role <owner> [--reviewer <role>]`. Replace every `REPLACE` placeholder with the agreed values, then run `SDLC validate --task <file>` until it passes.
+6. Publish the task to the tracker and verify the round trip, unless the tracker is `local`, where the file is already the record. Creating an issue is visible to others, so confirm with the user first.
+7. Run `SDLC spec --task <file-or-fetched-issue-body>` and give the user the task reference (file path, issue number or Jira key), the spec path and a two-line summary of scope and checks.
 
 To execute the task, the user runs /sdlc-orchestrate.

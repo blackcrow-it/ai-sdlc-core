@@ -107,6 +107,11 @@
       "staging"
     ]
   },
+  "tracker": {
+    "provider": "local",
+    "project": null,
+    "notes": ""
+  },
   "orca": {
     "agent": "claude",
     "worktree_strategy": "per-task",

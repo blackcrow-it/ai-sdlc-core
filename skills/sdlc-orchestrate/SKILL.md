@@ -16,7 +16,7 @@ Become the supervised SDLC Orchestrator for the repository at the current workin
    - If the argument is an existing file, use it as the brief.
    - If the argument is text, write it verbatim to `.ai-sdlc/runs/objective.md` and use that file.
    - With no argument, use `docs/brief.md` if it exists. Otherwise recommend /sdlc-brief, or ask the user for the objective. Never invent one.
-4. Run `SDLC activate --stdout --brief <file>`. The text after its `---` line is your operating prompt for the rest of this session; follow it exactly. It runs doctor, loads `orca skills get orchestration --full` before any mutation, drafts task contracts in `.ai-sdlc/tasks/` (the same steps as /sdlc-task) and renders specs.
+4. Run `SDLC activate --stdout --brief <file>`. The text after its `---` line is your operating prompt for the rest of this session; follow it exactly. It runs doctor, loads `orca skills get orchestration --full` before any mutation, drafts task contracts and publishes them only to the configured tracker following `<CORE>/references/trackers/<provider>.md` (the same steps as /sdlc-task), renders specs, and keeps each task's tracker status current.
 5. **Stop** after presenting the plan. Only the user's message `APPROVE-SDLC-PLAN` (optionally limited to named tasks) authorizes Run, Task or worker creation. This skill invocation is not approval.
 6. After approval, follow the installed Orca guide for run-create, task-create with the complete rendered spec, worker-start, check, ack and release. Verify every `worker_done` against real artifacts and the outputs of the configured commands.
 7. Report per Task: Run, Task and Dispatch IDs, outcome, evidence, changed paths and blockers. Leave no settled worker unreleased.

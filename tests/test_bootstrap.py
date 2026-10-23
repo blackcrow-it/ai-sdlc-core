@@ -6,7 +6,9 @@ import unittest
 from pathlib import Path
 
 from helpers import CORE, CORE_ROOT, example_task, load, run_cli
-from sdlc_core.project import BLOCK_BEGIN, detect_stack
+from sdlc_core.environment import tracker_checks
+from sdlc_core.project import BLOCK_BEGIN, detect_stack, suggest_tracker
+from sdlc_core.validate import parse_task
 from sdlc_core.render import SMOKE_HEADINGS, check_headings, smoke_paths
 
 INIT_FLAGS = ['--no-detect', '--name', 'Shop API', '--language', 'typescript', '--test-cmd', 'npm run test',
@@ -196,6 +198,72 @@ class InstallUpgradeTests(ProjectTestCase):
         code, out = self.cli('upgrade')
         self.assertEqual(code, 1)
         self.assertIn('Incompatible upgrade', out)
+
+
+class TrackerTests(ProjectTestCase):
+    def ready_task(self):
+        task = example_task()
+        task.update(project_id='PROJECT-SHOP-API', acceptance_criteria=['POST /orders returns 201'])
+        task['scope']['allowed_paths'] = ['src/orders/**']
+        return task
+
+    def test_issue_body_round_trips_the_contract(self):
+        self.init()
+        task_file = self.dir / 'task.json'
+        task_file.write_text(json.dumps(self.ready_task()))
+        code, body = self.cli('task', 'body', '--task', str(task_file))
+        self.assertEqual(code, 0, body)
+        self.assertIn('BEGIN AI-SDLC TASK CONTRACT', body)
+        self.assertIn('- [ ] POST /orders returns 201', body)
+        # Simulate the tracker: prose around the body, as an issue view would return it.
+        fetched = self.dir / 'issue.md'
+        fetched.write_text('TASK-001: Implement login endpoint\n\n' + body + '\n---\ncomment', encoding='utf-8')
+        self.assertEqual(parse_task(fetched.read_text(encoding='utf-8')), self.ready_task())
+        self.assertEqual(self.cli('validate', '--task', str(fetched))[0], 0)
+        code, out = self.cli('spec', '--task', str(fetched))
+        self.assertEqual(code, 0, out)
+        with self.assertRaises(ValueError):
+            parse_task('no contract here')
+
+    def test_drafts_live_outside_the_repo_record_for_remote_trackers(self):
+        self.init('--tracker', 'github', '--tracker-project', 'acme/shop')
+        self.cli('task', 'new', '--id', 'TASK-001', '--title', 'X', '--role', 'backend-developer')
+        self.assertTrue((self.dir / '.ai-sdlc' / 'runs' / 'tasks' / 'TASK-001.json').is_file())
+        self.assertFalse((self.dir / '.ai-sdlc' / 'tasks').exists())
+
+    def test_local_tracker_keeps_contracts_in_tasks_dir(self):
+        config = self.init()
+        self.assertEqual(config['tracker'], {'provider': 'local', 'project': None, 'notes': ''})
+        self.cli('task', 'new', '--id', 'TASK-001', '--title', 'X', '--role', 'backend-developer')
+        self.assertTrue((self.dir / '.ai-sdlc' / 'tasks' / 'TASK-001.json').is_file())
+
+    def test_tracker_specific_rules(self):
+        self.init('--tracker', 'jira')
+        code, out = self.cli('validate')
+        self.assertEqual(code, 1)
+        self.assertIn('Jira project key', out)
+        self.init('--force', '--tracker', 'other', '--tracker-notes', 'short')
+        self.assertIn('must describe the workflow', self.cli('validate')[1])
+
+    def test_tracker_suggestion_from_remote(self):
+        for url, expected in (('https://github.com/acme/api.git', ('github', 'acme/api')),
+                              ('git@gitlab.example.com:group/proj.git', ('gitlab', 'group/proj')),
+                              ('https://bitbucket.org/acme/api.git', ('local', None))):
+            with self.subTest(url=url):
+                repo = self.dir / expected[0] / str(abs(hash(url)))
+                repo.mkdir(parents=True)
+                subprocess.run(['git', 'init', '-q'], cwd=repo, check=True)
+                subprocess.run(['git', 'remote', 'add', 'origin', url], cwd=repo, check=True)
+                self.assertEqual(suggest_tracker(repo)[:2], expected)
+
+    def test_doctor_and_prompt_name_the_tracker(self):
+        config = self.init()
+        self.assertEqual(tracker_checks(config, self.dir)[0][0], 'OK')
+        config['tracker'].update(provider='github', project='acme/shop')
+        self.assertEqual(tracker_checks(config, self.dir, offline=True)[0][0], 'WARN')
+        self.cli('activate', '--offline')
+        prompt = (self.dir / '.ai-sdlc' / 'runs' / 'orchestrator-activation.md').read_text(encoding='utf-8')
+        self.assertIn('references/trackers/local.md', prompt)
 
 
 class CliProcessTests(unittest.TestCase):

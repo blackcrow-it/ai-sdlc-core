@@ -10,7 +10,7 @@ Report AI SDLC readiness for the repository at the current working directory. Th
 
 1. Locate `<CORE>`: the `ai-sdlc-core` skill directory next to this skill's base directory (otherwise `.claude/skills`, `.agents/skills`, `~/.claude/skills`, `~/.agents/skills`). `SDLC` = `python "<CORE>/scripts/sdlc.py"`.
 2. Run `SDLC doctor`. If it reports the config as missing, recommend /sdlc-setup and stop.
-3. List `.ai-sdlc/tasks/*.json` with task_id, owner, status and whether `SDLC validate --task <file>` passes.
+3. List the task contracts from the configured tracker, following the "List" recipe in `<CORE>/references/trackers/<tracker.provider>.md`. Show task_id, owner, status and whether the contract validates.
 4. If the Orca CLI is reachable, run `orca orchestration run-current --json` (read-only) and report the active Run, if any.
 5. If the project's `core_version` is older than `SDLC version`, show `SDLC upgrade --dry-run` and run `SDLC upgrade` only after the user approves.
 

@@ -1,6 +1,8 @@
 """Static validation of the core package, task contracts and path scopes."""
 import json
+import re
 from fnmatch import fnmatchcase as fnmatch
+from pathlib import Path
 
 from . import schema
 from .core import read_frontmatter
@@ -15,6 +17,7 @@ CORE_FILES = [
     'assets/prompts/worker-spec.md', 'assets/prompts/smoke-ba-spec.md',
     'assets/project/AGENTS.block.md', 'assets/project/CLAUDE.block.md',
     'assets/smoke/project-brief.md', 'templates/project-brief.md',
+    *[f'references/trackers/{name}.md' for name in ('local', 'github', 'gitlab', 'jira', 'other')],
 ]
 
 
@@ -124,6 +127,27 @@ def effective_protected_paths(core, config):
 def effective_forbidden_actions(core, config):
     extra = config['scope']['forbidden_actions'] if config else []
     return list(dict.fromkeys(core.manifest['default_forbidden_actions'] + extra))
+
+
+CONTRACT_BEGIN = 'BEGIN AI-SDLC TASK CONTRACT'
+CONTRACT_END = 'END AI-SDLC TASK CONTRACT'
+CONTRACT_RE = re.compile(re.escape(CONTRACT_BEGIN) + r'\s*(\{.*\})\s*' + re.escape(CONTRACT_END), re.S)
+
+
+def parse_task(text):
+    """A task contract is either a JSON file or a tracker issue body that embeds the contract
+    between the BEGIN/END marker lines rendered by `sdlc.py task body`."""
+    stripped = text.lstrip('﻿').strip()
+    if stripped.startswith('{'):
+        return json.loads(stripped)
+    match = CONTRACT_RE.search(stripped)
+    if not match:
+        raise ValueError(f'No task contract found: expected JSON or a "{CONTRACT_BEGIN}" block')
+    return json.loads(match.group(1))
+
+
+def load_task(path):
+    return parse_task(Path(path).read_text(encoding='utf-8'))
 
 
 def validate_task(task, core, config=None):

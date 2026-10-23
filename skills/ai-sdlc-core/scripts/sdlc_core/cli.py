@@ -4,12 +4,12 @@ import json
 import sys
 from pathlib import Path
 
-from .core import Core, read_json
+from .core import Core
 from .environment import install_skills, install_targets, run_doctor, upgrade_project
 from .project import APPROVER_ROLES, COMMAND_KEYS, init_project, load_config, refresh_blocks, validate_config, write_text
-from .render import (build_activation_prompt, build_smoke_prompt, build_smoke_spec,
+from .render import (build_activation_prompt, build_smoke_prompt, build_smoke_spec, build_task_body,
                      build_worker_spec, check_smoke_outputs, smoke_paths)
-from .validate import effective_forbidden_actions, validate_core, validate_task
+from .validate import effective_forbidden_actions, load_task, validate_core, validate_task
 
 
 class _Abort(Exception):
@@ -81,7 +81,8 @@ def cmd_init(core, args):
             'out_of_scope': args.out_of_scope, 'allowed_paths': args.allowed_path,
             'protected_paths': args.protected_path, 'forbidden_actions': args.forbidden_action,
             'roles': args.role, 'phases': args.phase, 'agent': args.agent,
-            'extra_policies': args.extra_policy, 'detect': not args.no_detect}
+            'extra_policies': args.extra_policy, 'detect': not args.no_detect,
+            'tracker': args.tracker, 'tracker_project': args.tracker_project, 'tracker_notes': args.tracker_notes}
     opts.update({f'{key}_commands': getattr(args, f'{key}_cmd') for key in COMMAND_KEYS})
     approvers = {}
     for item in args.approver or []:
@@ -131,7 +132,7 @@ def cmd_validate(core, args):
             errors, warnings = validate_config(config, core, d)
             problems += errors
     for task_path in args.task:
-        problems += [f'{task_path}: {e}' for e in validate_task(read_json(task_path), core, config)]
+        problems += [f'{task_path}: {e}' for e in validate_task(load_task(task_path), core, config)]
     for warning in warnings:
         print(f'WARN: {warning}')
     if problems:
@@ -162,7 +163,14 @@ def cmd_doctor(core, args):
     return 1 if failed else 0
 
 
+def cmd_task(core, args):
+    return cmd_task_body(core, args) if args.action == 'body' else cmd_task_new(core, args)
+
+
 def cmd_task_new(core, args):
+    if not (args.id and args.title and args.role):
+        print('FAIL: task new needs --id, --title and --role')
+        return 1
     d = _project_dir(args)
     config = _valid_config_or_exit(core, d)
     reviewer = args.reviewer or ('code-reviewer' if args.role != 'code-reviewer' else 'qa-engineer')
@@ -178,7 +186,10 @@ def cmd_task_new(core, args):
         'deliverables': ['REPLACE_WITH_REAL_OUTPUT'],
         'max_attempts': config['sdlc']['default_max_attempts'], 'human_approval_required': True,
         'input_artifacts': [], 'orca_run_id': None, 'evidence_paths': []}
-    out = Path(args.output) if args.output else d / core.layout('tasks_dir') / f'{args.id}.json'
+    # Local tracker: contracts live in tasks_dir. Remote trackers: the issue is the record, so the
+    # draft goes to the ignored runs dir until it is published per references/trackers/<provider>.md.
+    draft_dir = core.layout('tasks_dir') if config['tracker']['provider'] == 'local'         else f'{core.layout("runs_dir")}/tasks'
+    out = Path(args.output) if args.output else d / draft_dir / f'{args.id}.json'
     out = out if out.is_absolute() else d / out
     if out.exists():
         print(f'FAIL: refusing to overwrite {out}')
@@ -189,10 +200,28 @@ def cmd_task_new(core, args):
     return 0
 
 
+def cmd_task_body(core, args):
+    """Print the tracker issue body for a validated contract (title: `<task_id>: <title>`)."""
+    if not args.task:
+        print('FAIL: task body needs --task <file>')
+        return 1
+    d = _project_dir(args)
+    config = _valid_config_or_exit(core, d)
+    task = load_task(args.task)
+    errors = validate_task(task, core, config)
+    if errors:
+        print('INVALID TASK CONTRACT:')
+        for error in errors:
+            print(f' - {error}')
+        return 1
+    _write(d, args.output, build_task_body(task), stdout=not args.output)
+    return 0
+
+
 def cmd_spec(core, args):
     d = _project_dir(args)
     config = _valid_config_or_exit(core, d)
-    task = read_json(args.task)
+    task = load_task(args.task)
     errors = validate_task(task, core, config)
     if errors:
         print('INVALID TASK CONTRACT:')
@@ -297,6 +326,10 @@ def build_parser():
                  'out-of-scope', 'allowed-path', 'protected-path', 'forbidden-action', 'role', 'phase',
                  'extra-policy'):
         p.add_argument(f'--{flag}', action='append', help='repeatable')
+    p.add_argument('--tracker', choices=['local', 'github', 'gitlab', 'jira', 'other'],
+                   help='where task contracts live (default: local)')
+    p.add_argument('--tracker-project', help='owner/repo, group/project or Jira project key')
+    p.add_argument('--tracker-notes', help='workflow description (required for --tracker other)')
     p.add_argument('--approver', action='append', metavar='ROLE=NAME',
                    help=f'human approver, ROLE in {", ".join(APPROVER_ROLES)} (repeatable)')
     for key in COMMAND_KEYS:
@@ -315,11 +348,13 @@ def build_parser():
     p.add_argument('--offline', action='store_true', help='skip Orca CLI checks')
     p.add_argument('--json', action='store_true')
 
-    p = command('task', cmd_task_new, 'create a draft task contract prefilled from the project config')
-    p.add_argument('action', choices=['new'])
-    p.add_argument('--id', required=True)
-    p.add_argument('--title', required=True)
-    p.add_argument('--role', required=True)
+    p = command('task', cmd_task, 'new: draft a task contract from the project config; '
+                'body: render the tracker issue body that embeds a contract')
+    p.add_argument('action', choices=['new', 'body'])
+    p.add_argument('--id')
+    p.add_argument('--title')
+    p.add_argument('--role')
+    p.add_argument('--task', help='contract file (body)')
     p.add_argument('--reviewer')
     p.add_argument('--output')
 

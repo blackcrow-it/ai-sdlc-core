@@ -6,7 +6,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "core_version", "project", "stack", "architecture", "commands",
-               "coding_rules", "scope", "sdlc", "orca", "extra_policies"],
+               "coding_rules", "scope", "sdlc", "tracker", "orca", "extra_policies"],
   "properties": {
     "schema_version": {"type": "string", "enum": ["0.1"]},
     "core_version": {"type": "string", "pattern": "^[0-9]+[.][0-9]+[.][0-9]+$"},
@@ -112,6 +112,17 @@
         },
         "default_max_attempts": {"type": "integer", "minimum": 1, "maximum": 10},
         "release_environments": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+      }
+    },
+    "tracker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "project", "notes"],
+      "description": "The single place task contracts live. Conventions: core references/trackers/<provider>.md.",
+      "properties": {
+        "provider": {"type": "string", "enum": ["local", "github", "gitlab", "jira", "other"]},
+        "project": {"type": ["string", "null"]},
+        "notes": {"type": "string"}
       }
     },
     "orca": {

@@ -134,6 +134,11 @@
       "staging"
     ]
   },
+  "tracker": {
+    "provider": "github",
+    "project": "acme/shop-api",
+    "notes": ""
+  },
   "orca": {
     "agent": "claude",
     "worktree_strategy": "per-task",

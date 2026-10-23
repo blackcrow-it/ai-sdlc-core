@@ -50,7 +50,7 @@ def find_installed(core, project_dir):
 
 def run_doctor(core, project_dir, offline=False):
     """Return a list of (status, check, detail) with status OK | WARN | FAIL. Never mutates state."""
-    d, out = Path(project_dir).resolve(), []
+    d, out, config = Path(project_dir).resolve(), [], None
     add = lambda status, check, detail='': out.append((status, check, detail))  # noqa: E731
     ok_py = sys.version_info >= (3, 10)
     add('OK' if ok_py else 'FAIL', 'python', sys.version.split()[0] + ('' if ok_py else ' (need 3.10+)'))
@@ -88,6 +88,8 @@ def run_doctor(core, project_dir, offline=False):
                 f'{config["project"]["id"]} pinned to core {config.get("core_version")}')
             out.extend(('FAIL', 'config', e) for e in errors)
             out.extend(('WARN', 'config', w) for w in warnings)
+            if not errors:
+                out.extend(tracker_checks(config, d, offline))
 
     for name, hits in find_installed(core, d).items():
         if not hits:
@@ -117,6 +119,37 @@ def run_doctor(core, project_dir, offline=False):
         add('OK' if present else 'WARN', 'orca-skill',
             skill + ('' if present else f' not detected: `orca skills install --skill {skill}`'))
     return out
+
+
+def tracker_checks(config, project_dir, offline=False):
+    """Read-only check that the configured tracker's CLI is installed and authenticated."""
+    tracker = config['tracker']
+    provider, project = tracker['provider'], tracker['project']
+    label = provider + (f' {project}' if project else '')
+    if provider == 'local':
+        return [('OK', 'tracker', 'local: task contracts live in .ai-sdlc/tasks/ (committed with the repo)')]
+    if provider == 'other':
+        return [('OK', 'tracker', f'other: follow tracker.notes - {tracker["notes"][:120]}')]
+    if offline:
+        return [('WARN', 'tracker', f'{label}: authentication check skipped (--offline)')]
+    if provider == 'jira':
+        orca = shutil.which('orca') or shutil.which('orca-ide')
+        if not orca:
+            return [('FAIL', 'tracker', 'jira: needs the Orca CLI (`orca jira ...`)')]
+        code, output = _run([orca, 'jira', 'connection', '--json'], project_dir, timeout=30)
+        try:
+            connected = code == 0 and json.loads(output)['result']['connected']
+        except (ValueError, KeyError, TypeError):
+            connected = False
+        return [('OK' if connected else 'FAIL', 'tracker', f'{label}: Jira connection '
+                 + ('ready' if connected else 'missing - connect a Jira site in Orca (`orca jira connection`)'))]
+    tool = {'github': 'gh', 'gitlab': 'glab'}[provider]
+    exe = shutil.which(tool)
+    if not exe:
+        return [('FAIL', 'tracker', f'{label}: `{tool}` CLI not installed')]
+    code, _ = _run([exe, 'auth', 'status'], project_dir, timeout=30)
+    return [('OK' if code == 0 else 'FAIL', 'tracker',
+             f'{label}: `{tool}` ' + ('authenticated' if code == 0 else f'not authenticated - run `{tool} auth login`'))]
 
 
 def install_targets(project_dir, scope, agents):

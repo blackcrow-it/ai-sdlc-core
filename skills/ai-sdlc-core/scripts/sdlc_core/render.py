@@ -1,9 +1,10 @@
 """Render self-contained Orchestrator prompts and Orca worker task specs from core templates
 plus project config. Rendering never contacts Orca; output is a reviewable document."""
+import json
 import re
 from pathlib import Path
 
-from .validate import effective_forbidden_actions, effective_protected_paths
+from .validate import CONTRACT_BEGIN, CONTRACT_END, effective_forbidden_actions, effective_protected_paths
 
 PLACEHOLDER_RE = re.compile(r'\{\{([a-z_]+)\}\}')
 POLICIES = ('policies/permissions.md', 'policies/approval-rules.md', 'policies/quality-gates.md')
@@ -65,12 +66,20 @@ def project_context(core, config):
     lines.append(f'- Project write ceiling: {code_list(scope["allowed_paths"])}; protected (never write): '
                  f'{code_list(effective_protected_paths(core, config))}')
     lines.append(f'- Forbidden actions: {code_list(effective_forbidden_actions(core, config))}')
+    tracker = config['tracker']
+    lines.append(f'- Task tracker (the only place task contracts live): `{tracker["provider"]}`'
+                 + (f' `{tracker["project"]}`' if tracker['project'] else '')
+                 + f'; conventions: core `{tracker_doc(config)}`' + (f' - {tracker["notes"]}' if tracker['notes'] else ''))
     lines.append(f'- Enabled phases: {code_list(sdlc["enabled_phases"])}; enabled roles: {code_list(sdlc["enabled_roles"])}')
     approvers = ', '.join(f'{k}={v or "UNASSIGNED"}' for k, v in sdlc['approvers'].items())
     lines.append(f'- Human approvers: {approvers}; release environments: {code_list(sdlc["release_environments"])}')
     if config['extra_policies']:
         lines.append(f'- Extra project policies (tighten core rules only): {code_list(config["extra_policies"])}')
     return '\n'.join(lines)
+
+
+def tracker_doc(config):
+    return f'references/trackers/{config["tracker"]["provider"]}.md'
 
 
 def project_files(core, config):
@@ -129,7 +138,7 @@ def build_smoke_spec(core, config):
 def _activation_values(core, config, agent):
     reads = ['references/OPERATING-CONTRACT.md', 'agents/orchestrator.md', 'agents/registry.json',
              'workflows/manifest.json', *POLICIES, 'references/HANDOFF.md',
-             'references/ROLE-ASSIGNMENT.md', 'references/ORCHESTRATOR-ACTIVATION.md']
+             'references/ROLE-ASSIGNMENT.md', 'references/ORCHESTRATOR-ACTIVATION.md', tracker_doc(config)]
     return {
         'core_version': core.version, 'core_root': core.root.as_posix(),
         'sdlc': f'python "{core.script}"',
@@ -142,6 +151,7 @@ def _activation_values(core, config, agent):
         'worktree_strategy': config['orca']['worktree_strategy'],
         'max_parallel_workers': config['orca']['max_parallel_workers'],
         'tasks_dir': core.layout('tasks_dir'), 'runs_dir': core.layout('runs_dir'),
+        'tracker': config['tracker']['provider'], 'tracker_doc': tracker_doc(config),
     }
 
 
@@ -158,6 +168,36 @@ def build_smoke_prompt(core, config, agent=None):
     values.update({'spec_path': paths['spec'], 'requirements_path': paths['requirements'],
                    'handoff_path': paths['handoff']})
     return render(core.asset('prompts/smoke-orchestrator.md'), values)
+
+
+def build_task_body(task):
+    """Issue body for remote trackers: a readable summary plus the embedded contract,
+    which stays the source of truth (`sdlc.py validate/spec --task` read it back)."""
+    scope = task['scope']
+    contract = json.dumps(task, indent=2, ensure_ascii=False)
+    return '\n'.join([
+        f'**Owner:** `{task["owner_agent"]}` | **Reviewer:** `{task["reviewer_agent"]}` | '
+        f'**Status:** `{task["status"]}` | **Depends on:** {code_list(task["dependencies"], "none")}',
+        '',
+        '### Acceptance criteria',
+        *[f'- [ ] {item}' for item in task['acceptance_criteria']],
+        '',
+        '### Scope',
+        f'- Write only: {code_list(scope["allowed_paths"])}',
+        f'- Forbidden: {code_list(scope["forbidden_actions"])}',
+        '',
+        '### Required checks',
+        *[f'- `{check}`' for check in task['required_checks']],
+        '',
+        '### Task contract (source of truth; edit only via `sdlc.py task body`)',
+        '',
+        '```text',
+        CONTRACT_BEGIN,
+        contract,
+        CONTRACT_END,
+        '```',
+        '',
+    ])
 
 
 def check_headings(files):

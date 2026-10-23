@@ -32,8 +32,12 @@ Humans drive the SDLC with slash commands; the agent runs `sdlc.py` itself. User
 
 When a request matches one of these but the user did not invoke it, suggest the command instead of improvising.
 
+Task contracts live in exactly one place, chosen during setup (`tracker` in the project config): local files, GitHub,
+GitLab, Jira (through `orca jira`) or a workflow the user describes. Follow `references/trackers/<provider>.md` for
+every task operation; `sdlc.py task body` renders the issue body that embeds the contract.
+
 ## Engine commands (used by the workflow skills, CI and power users)
-`version`, `where`, `install`, `init`, `validate [--task]`, `doctor`, `task new`, `spec --task`,
+`version`, `where`, `install`, `init`, `validate [--task]`, `doctor`, `task new`, `task body`, `spec --task`,
 `activate [--brief] [--smoke] [--stdout]`, `smoke spec|check`, `upgrade`; `--help` on each.
 `init` infers commands only from repository evidence and prints each `DETECTED` source; `validate` enforces the
 schema and invariants; `activate` renders the Orchestrator prompt.
