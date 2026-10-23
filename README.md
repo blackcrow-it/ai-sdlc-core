@@ -55,6 +55,73 @@ không đoán. Nội dung `AGENTS.md`/`CLAUDE.md` sẵn có được giữ nguy�
 `<!-- ai-sdlc-core:begin -->` và `<!-- ai-sdlc-core:end -->` được chèn hoặc cập nhật. Chi tiết:
 [ORCHESTRATOR-ACTIVATION](skills/ai-sdlc-core/references/ORCHESTRATOR-ACTIVATION.md), [ORCA-SETUP](skills/ai-sdlc-core/references/ORCA-SETUP.md).
 
+## Luồng xử lý
+
+### Toàn trình: từ máy mới đến tính năng hoàn thành
+
+```mermaid
+flowchart TD
+    A["Một lần mỗi máy:<br/>orca skills install + npx skills add"] --> B["/sdlc-setup<br/>(một lần mỗi repository)"]
+    B --> C{"/sdlc-status<br/>READY?"}
+    C -- "BLOCKED" --> B
+    C -- "READY, lần đầu" --> D["/sdlc-smoke<br/>(tuỳ chọn, thử Orca)"]
+    D --> G1(["Bạn gửi START-ORCA-SMOKE-TEST"])
+    G1 --> E
+    C -- "READY" --> E["/sdlc-orchestrate + mục tiêu"]
+    T["/sdlc-task + mục tiêu<br/>(soạn trước task lẻ)"] -.-> E
+    E --> P["Orchestrator lập DAG, task contract, spec"]
+    P --> G2(["Bạn duyệt: APPROVE-SDLC-PLAN"])
+    G2 --> W["Orca dispatch worker theo từng phase<br/>(role skill sdlc-* tự nạp)"]
+    W --> V{"Orchestrator kiểm chứng<br/>artifact + lệnh test thật"}
+    V -- "fail" --> R["Task sửa lỗi<br/>(trong ngân sách retry)"] --> W
+    V -- "cần quyết định" --> H(["Gate con người<br/>(người phê duyệt trong project.json)"]) --> W
+    V -- "pass mọi gate" --> F["Báo cáo: Run/Task/Dispatch ID,<br/>file đổi, exit code, rủi ro"]
+    F --> C
+```
+
+### Cần làm gì thì gọi skill nào
+
+| Thời điểm | Bạn gọi | Agent làm | Bạn cần làm | Kết quả |
+|---|---|---|---|---|
+| Máy mới | (lệnh cài ở mục 1) | – | Chạy 2 lệnh cài | 11 skill + skill native của Orca |
+| Repository mới | `/sdlc-setup` | Dò stack, hỏi từng vòng, chạy `init`/`validate` | Trả lời câu hỏi, đồng ý commit | `.ai-sdlc/project.json`, khối trong `AGENTS.md`/`CLAUDE.md` |
+| Bất kỳ lúc nào | `/sdlc-status` | `doctor`, liệt kê task, Run, đề xuất upgrade | Đọc kết quả | READY/BLOCKED và lệnh nên dùng tiếp |
+| Lần đầu dùng Orca trên repo | `/sdlc-smoke` | Giám sát 1 worker BA, chấm kết quả | Gửi `START-ORCA-SMOKE-TEST` | Bằng chứng Orca chạy được (ID thật) |
+| Muốn soạn trước một việc nhỏ | `/sdlc-task <mục tiêu>` | Soạn task contract, validate, render spec | Duyệt owner, phạm vi, tiêu chí | `.ai-sdlc/tasks/TASK-NNN.json`, spec trong `.ai-sdlc/runs/specs/` |
+| Có tính năng, bug, mục tiêu cần làm | `/sdlc-orchestrate <mục tiêu>` | Đóng vai Orchestrator: lập kế hoạch rồi dừng | Gửi `APPROVE-SDLC-PLAN`, quyết định ở các gate | Code, tài liệu, kết quả kiểm thử đã kiểm chứng |
+| Sau khi cài bản core mới | `/sdlc-status` | Phát hiện pin cũ, chạy `upgrade --dry-run` | Đồng ý upgrade | Pin mới, khối quản lý được làm mới |
+
+Bạn chỉ có hai câu lệnh phê duyệt cố định: `START-ORCA-SMOKE-TEST` cho smoke test và `APPROVE-SDLC-PLAN` cho kế hoạch thật.
+Có thể duyệt một phần, ví dụ `APPROVE-SDLC-PLAN TASK-001 TASK-002`. Không có hai câu này, agent chỉ đọc và đề xuất.
+
+### Bên trong `/sdlc-orchestrate`
+
+Orchestrator chạy theo 9 phase của `workflows/manifest.json`, giới hạn trong `sdlc.enabled_phases` của dự án. Mỗi worker
+được Orca khởi động với một spec tự chứa và tự nạp role skill tương ứng. Bạn **không** gọi các role skill này.
+
+| Phase | Vai trò chính | Role skill worker dùng | Gate cuối phase (`policies/quality-gates.md`) |
+|---|---|---|---|
+| 1. discovery | product-manager | `sdlc-requirements-analysis` | Requirement: phạm vi do product owner xác nhận |
+| 2. requirements | business-analyst | `sdlc-requirements-analysis` | Requirement: truy vết, tiêu chí đo được |
+| 3. design | ui-ux-designer | `sdlc-requirements-analysis` | Design: UX/accessibility |
+| 4. architecture | software-architect (+ database-engineer) | `sdlc-system-design` | Design: ADR/API do tech lead duyệt |
+| 5. planning | project-manager | `sdlc-requirements-analysis` | Planning: schema, phụ thuộc không vòng, owner ≠ reviewer |
+| 6. development | backend-developer, frontend-developer | `sdlc-implementation` | Implementation: build/lint/typecheck/test từ `commands` |
+| ↳ review độc lập | code-reviewer, security-engineer | `sdlc-code-review`, `sdlc-testing` | Review + Security: phát hiện độc lập, CI xanh |
+| 7. testing | qa-engineer | `sdlc-testing` | Test report theo từng tiêu chí nghiệm thu |
+| 8. deployment | devops-engineer | `sdlc-implementation` | Release: chỉ `release_environments`, release owner duyệt |
+| 9. maintenance | technical-writer | `sdlc-requirements-analysis` | Bàn giao vận hành, backlog tiếp theo |
+
+Với mỗi task, vòng lặp như sau:
+1. Orchestrator dispatch worker (code worker dùng worktree riêng).
+2. Worker gửi `worker_done`.
+3. Orchestrator tự đọc diff, artifact và chạy lại các lệnh trong `commands`.
+4. Gate được ghi `pass`, `fail`, `blocked`, `not_run` hoặc `waived`; chỉ người phê duyệt có tên mới được `waived`.
+5. Orchestrator release worker, rồi mới mở task phụ thuộc.
+
+Gate cần quyết định của con người sẽ dừng lại hỏi đúng người trong `sdlc.approvers`. Vai trò để `null` thì gate đó bị chặn.
+Production không bao giờ được deploy tự động.
+
 ## Engine `sdlc.py` (nâng cao: CI, script, gỡ lỗi)
 
 Các workflow skill gọi engine này; bạn chỉ cần dùng trực tiếp khi chạy CI hoặc gỡ lỗi. Python 3.10+, chỉ thư viện chuẩn.
