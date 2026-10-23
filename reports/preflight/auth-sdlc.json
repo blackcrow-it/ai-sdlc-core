@@ -82,5 +82,33 @@
       "original_token_count": 82,
       "output": "test_example_task (test_config.ConfigTests.test_example_task) ... ok\r\ntest_reject_self_review (test_config.ConfigTests.test_reject_self_review) ... ok\r\ntest_static_config (test_config.ConfigTests.test_static_config) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 3 tests in 0.005s\r\n\r\nOK\r\n"
     }
-  ]
+  ],
+  "proposal_verification": {
+    "command": "PowerShell here-string piped to python - (proposal table/receipt validation)",
+    "status": "pass",
+    "scope": "Proposed D01-D16 worker dependencies only; does not validate native tasks or approve human gates.",
+    "proposal_path": "docs\\proposals\\auth-sdlc.md",
+    "proposal_sha256": "e4e1f5183b09ed894f1677dfe16a68e7bfa9c093398058e670c341bf9d5db19a",
+    "proposed_task_count": 16,
+    "topological_order": [
+      "D01",
+      "D02",
+      "D03",
+      "D04",
+      "D05",
+      "D06",
+      "D07",
+      "D08",
+      "D09",
+      "D10",
+      "D11",
+      "D12",
+      "D13",
+      "D14",
+      "D15",
+      "D16"
+    ],
+    "all_saved_preflight_receipts_exit_zero": true,
+    "bound_native_run": null
+  }
 }
