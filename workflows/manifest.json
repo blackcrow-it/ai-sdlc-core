@@ -1,0 +1,97 @@
+{
+  "version": "1.0",
+  "note": "Mô tả workflow riêng của repo; không phải workflow definition Orca tự thi hành.",
+  "phases": [
+    {
+      "id": "PHASE-01",
+      "name": "discovery",
+      "owner": "product-manager",
+      "playbook": "workflows/discovery.md",
+      "next": "requirements",
+      "required_template_paths": [
+        "templates/PRD.md"
+      ]
+    },
+    {
+      "id": "PHASE-02",
+      "name": "requirements",
+      "owner": "business-analyst",
+      "playbook": "workflows/requirements.md",
+      "next": "design",
+      "required_template_paths": [
+        "templates/PRD.md",
+        "templates/SRS.md"
+      ]
+    },
+    {
+      "id": "PHASE-03",
+      "name": "design",
+      "owner": "ui-ux-designer",
+      "playbook": "workflows/design.md",
+      "next": "architecture",
+      "required_template_paths": [
+        "templates/UI-SPEC.md"
+      ]
+    },
+    {
+      "id": "PHASE-04",
+      "name": "architecture",
+      "owner": "software-architect",
+      "playbook": "workflows/architecture.md",
+      "next": "planning",
+      "required_template_paths": [
+        "templates/architecture.md"
+      ]
+    },
+    {
+      "id": "PHASE-05",
+      "name": "planning",
+      "owner": "project-manager",
+      "playbook": "workflows/planning.md",
+      "next": "development",
+      "required_template_paths": [
+        "templates/task.md"
+      ]
+    },
+    {
+      "id": "PHASE-06",
+      "name": "development",
+      "owner": "backend-developer",
+      "playbook": "workflows/development.md",
+      "next": "testing",
+      "required_template_paths": [
+        "templates/task.md"
+      ]
+    },
+    {
+      "id": "PHASE-07",
+      "name": "testing",
+      "owner": "qa-engineer",
+      "playbook": "workflows/testing.md",
+      "next": "deployment",
+      "required_template_paths": [
+        "templates/test-report.md"
+      ]
+    },
+    {
+      "id": "PHASE-08",
+      "name": "deployment",
+      "owner": "devops-engineer",
+      "playbook": "workflows/deployment.md",
+      "next": "maintenance",
+      "required_template_paths": [
+        "templates/release-notes.md"
+      ]
+    },
+    {
+      "id": "PHASE-09",
+      "name": "maintenance",
+      "owner": "technical-writer",
+      "playbook": "workflows/maintenance.md",
+      "next": "discovery",
+      "required_template_paths": [
+        "templates/incident-report.md"
+      ]
+    }
+  ]
+}

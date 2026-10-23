@@ -1,0 +1,47 @@
+{
+  "task_id": "TASK-001",
+  "project_id": "PROJECT-DEMO",
+  "title": "Implement login endpoint",
+  "owner_agent": "backend-developer",
+  "reviewer_agent": "code-reviewer",
+  "status": "draft",
+  "priority": "high",
+  "risk_level": "medium",
+  "dependencies": [],
+  "scope": {
+    "allowed_paths": [
+      "src/auth/**",
+      "tests/auth/**"
+    ],
+    "forbidden_actions": [
+      "deploy_production",
+      "edit_secrets"
+    ]
+  },
+  "acceptance_criteria": [
+    "Valid users can log in and receive an appropriately scoped session",
+    "Invalid credentials are rejected without leaking secret data",
+    "Required authorization checks are enforced"
+  ],
+  "required_checks": [
+    "lint",
+    "unit_tests",
+    "integration_tests",
+    "security_scan"
+  ],
+  "deliverables": [
+    "source_changes",
+    "tests",
+    "pull_request",
+    "test_report"
+  ],
+  "max_attempts": 3,
+  "human_approval_required": true,
+  "input_artifacts": [
+    "docs/requirements/auth.md"
+  ],
+  "budget_usd": 5.0,
+  "time_budget_minutes": 60,
+  "orca_run_id": null,
+  "evidence_paths": []
+}
