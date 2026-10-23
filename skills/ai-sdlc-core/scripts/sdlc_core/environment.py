@@ -6,7 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from .core import parse_version, read_frontmatter, read_json
+from .core import compat_line, parse_version, read_frontmatter, read_json
 from .project import config_path, load_config, validate_config, write_text
 from .validate import validate_core
 
@@ -166,8 +166,8 @@ def upgrade_project(core, project_dir, dry_run=False):
     config = load_config(project_dir, core)
     pinned = config['core_version']
     want, have = parse_version(pinned), parse_version(core.version)
-    if want[0] != have[0]:
-        raise ValueError(f'Major upgrade {pinned} -> {core.version} needs a migration; see README "Migration"')
+    if compat_line(pinned) != compat_line(core.version):
+        raise ValueError(f'Incompatible upgrade {pinned} -> {core.version}; follow README "Versioning"')
     if have < want:
         return config, [f'Installed core {core.version} is older than the pinned {pinned}; update the skill instead']
     if have == want:

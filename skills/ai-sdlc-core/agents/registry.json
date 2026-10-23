@@ -1,5 +1,5 @@
 {
-  "version": "2.0",
+  "version": "0.1",
   "note": "Canonical role registry of AI SDLC Core. Not parsed natively by Orca; the Orchestrator and sdlc.py use it to select role profiles. Project repos enable a subset via .ai-sdlc/project.json (sdlc.enabled_roles).",
   "roles": [
     {

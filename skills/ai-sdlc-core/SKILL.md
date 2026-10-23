@@ -3,7 +3,7 @@ name: ai-sdlc-core
 description: AI SDLC Core - reusable multi-agent SDLC package (14 roles, 9 workflows, policies, templates, schemas) with a Bootstrap CLI. Use when setting up AI SDLC in a repository (".ai-sdlc/project.json", "init sdlc"), validating that config, creating task contracts or Orca worker specs, or activating/acting as the SDLC Orchestrator or an SDLC worker role in Orca ADE.
 metadata:
   package: ai-sdlc-core
-  version: "2.1.0"
+  version: "0.1.0"
 ---
 
 # AI SDLC Core

@@ -1,4 +1,4 @@
-# AI SDLC Core v2.1 – Reusable Agent Skills Package cho Orca ADE
+# AI SDLC Core – Reusable Agent Skills Package cho Orca ADE
 
 Một bản **chuẩn, có phiên bản** của toàn bộ tổ chức AI Agent (14 vai trò, 9 workflow SDLC, policy, template,
 schema) được đóng gói thành **Agent Skills**. Bạn làm việc hoàn toàn bằng **slash command** (theo phong cách bộ skill
@@ -147,7 +147,7 @@ Schema: [`project.schema.json`](skills/ai-sdlc-core/schemas/project.schema.json)
 
 | Khối | Nội dung |
 |---|---|
-| `core_version`, `schema_version` | Pin phiên bản core (cùng major, core đã cài ≥ pin) |
+| `core_version`, `schema_version` | Pin phiên bản core (xem mục Phiên bản) và phiên bản schema cấu hình |
 | `project` | `id`, tên, mô tả, nhánh mặc định, ngôn ngữ trả lời |
 | `stack` | Ngôn ngữ lập trình, framework, package manager, runtime |
 | `architecture` | Kiểu kiến trúc, tóm tắt, tài liệu, component → paths |
@@ -188,33 +188,20 @@ python -m unittest discover -s tests -v
 python skills/ai-sdlc-core/scripts/sdlc.py doctor --offline
 ```
 
-## Migration từ v1.1
+## Phiên bản (Versioning)
 
-v1.1 đặt toàn bộ cấu hình ở gốc repo; v2.0 chuyển chúng vào skill và thay script rời bằng `sdlc.py`.
+Bản hiện tại là **0.1.0**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
+`metadata.version` của mọi `SKILL.md` trong gói; `sdlc.py validate --bundled` buộc các giá trị này khớp nhau.
+Mỗi dự án pin `core_version` trong `.ai-sdlc/project.json`. Quy tắc tương thích theo semver:
 
-| v1.1 | v2.0 |
+| Core đã cài so với pin | Kết quả |
 |---|---|
-| `agents/`, `workflows/`, `policies/`, `templates/`, `schemas/` ở gốc | `skills/ai-sdlc-core/<cùng tên>/` |
-| `AGENTS.md` (contract SDLC) | `skills/ai-sdlc-core/references/OPERATING-CONTRACT.md`; dự án chỉ có khối quản lý |
-| `docs/HANDOFF.md`, `ROLE-ASSIGNMENT.md`, `ORCA-SETUP.md`, `ORCHESTRATOR-QUICKSTART.md` | `skills/ai-sdlc-core/references/` (`ORCHESTRATOR-ACTIVATION.md`) |
-| `docs/BOOTSTRAP-PROMPT.md`, `ORCHESTRATOR-SMOKE-PROMPT.md` | Template trong `assets/prompts/`, render bằng `sdlc.py activate [--smoke]` |
-| Skill `requirements-analysis`, `system-design`, `implementation`, `code-review`, `testing` | `sdlc-requirements-analysis`, … (`registry.json` đã cập nhật) |
-| `scripts/validate_repo.py [--task]` | `sdlc.py validate [--task]` |
-| `scripts/new_task.py` | `sdlc.py task new` |
-| `scripts/orca_preflight.py` | `sdlc.py doctor` |
-| `scripts/build_worker_spec.py --role business-analyst` | `sdlc.py smoke spec` (smoke) / `sdlc.py spec --task` (mọi role) |
-| `scripts/check_smoke_output.py` | `sdlc.py smoke check` |
-| `outputs/smoke-test/` | `.ai-sdlc/runs/smoke-test/` |
-| `docs/proposals/`, `reports/`, `schemas/artifact.schema.json` | Đã bỏ (hồ sơ chạy thử v1.1, schema không dùng) |
+| `0.y.z`: cùng `0.y`, bản cài ≥ pin (ví dụ pin 0.1.0, cài 0.1.4) | Tương thích; `upgrade` chuyển pin lên |
+| `0.y.z`: khác minor (ví dụ 0.1.x → 0.2.0) | Không tương thích: mỗi minor của 0.x có thể phá vỡ |
+| `≥ 1.0.0`: cùng major, bản cài ≥ pin | Tương thích |
+| Khác major, hoặc bản cài cũ hơn pin | `validate`/`doctor` báo lỗi, cần cập nhật skill hoặc làm theo ghi chú nâng cấp |
 
-Dự án đang dùng bản sao v1.1: cài skill v2.0, chạy `sdlc.py init`, chuyển quy tắc riêng của dự án vào
-`.ai-sdlc/project.json` (hoặc `extra_policies`), rồi xoá các bản sao `agents/`, `workflows/`, `policies/`… khỏi repo dự án.
-
-### v2.0 → v2.1
-
-v2.1 thêm 5 workflow skill (`/sdlc-setup`, `/sdlc-status`, `/sdlc-task`, `/sdlc-smoke`, `/sdlc-orchestrate`) và flag
-`init --approver`; config 2.0 vẫn tương thích. Cài lại skill, rồi chạy `/sdlc-status` trong từng dự án: agent sẽ đề xuất
-`upgrade` để chuyển pin lên 2.1.0 và làm mới khối quản lý trong `AGENTS.md`/`CLAUDE.md`.
+Mỗi bản phát hành không tương thích phải kèm ghi chú nâng cấp trong mục này.
 
 ## Giới hạn quan trọng
 

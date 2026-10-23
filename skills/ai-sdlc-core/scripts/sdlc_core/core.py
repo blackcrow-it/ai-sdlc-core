@@ -19,12 +19,18 @@ def parse_version(text):
     return tuple(int(part) for part in match.groups())
 
 
+def compat_line(version):
+    """Semver compatibility line: MAJOR, or (0, MINOR) while MAJOR is 0 (every 0.x minor may break)."""
+    major, minor, _ = parse_version(version)
+    return (major,) if major else (0, minor)
+
+
 def compat_error(required, installed):
     """Return an error message when a project pinned to `required` cannot use `installed`."""
     req, inst = parse_version(required), parse_version(installed)
-    if req[0] != inst[0]:
+    if compat_line(required) != compat_line(installed):
         return (f'Project requires AI SDLC Core {required} but {installed} is installed; '
-                'a major version change needs a migration (see README "Migration").')
+                'this is an incompatible version change (see README "Versioning").')
     if inst < req:
         return f'Project requires AI SDLC Core >= {required}; installed {installed} is older. Update the skill.'
     return None

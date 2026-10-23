@@ -191,11 +191,11 @@ class InstallUpgradeTests(ProjectTestCase):
         config = self.init()
         self.assertIn('Already on core', self.cli('upgrade')[1])
         path = self.dir / '.ai-sdlc' / 'project.json'
-        config['core_version'] = '1.1.0'
+        config['core_version'] = '1.0.0'
         path.write_text(json.dumps(config))
         code, out = self.cli('upgrade')
         self.assertEqual(code, 1)
-        self.assertIn('migration', out)
+        self.assertIn('Incompatible upgrade', out)
 
 
 class CliProcessTests(unittest.TestCase):

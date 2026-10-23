@@ -3,7 +3,7 @@ name: sdlc-code-review
 description: Independently review diffs for correctness, architecture, security, tests and maintainability. Use before merge or release.
 metadata:
   package: ai-sdlc-core
-  version: "2.1.0"
+  version: "0.1.0"
 ---
 
 # Code Review

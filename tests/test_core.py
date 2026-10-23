@@ -13,7 +13,7 @@ class CorePackageTests(unittest.TestCase):
         self.assertEqual(validate_core(CORE, check_bundled_siblings=True), [])
 
     def test_single_canonical_version(self):
-        self.assertEqual(parse_version(CORE.version)[0], 2)
+        self.assertEqual(CORE.manifest['config_schema_version'], '0.1')
         self.assertEqual(len(CORE.roles), 14)
         self.assertEqual(len(CORE.phases), 9)
 
@@ -44,11 +44,16 @@ class CorePackageTests(unittest.TestCase):
 
 class VersionTests(unittest.TestCase):
     def test_compatibility_rules(self):
-        self.assertIsNone(compat_error('2.0.0', '2.0.0'))
-        self.assertIsNone(compat_error('2.0.0', '2.3.1'))
-        self.assertIn('older', compat_error('2.4.0', '2.0.0'))
-        self.assertIn('major', compat_error('1.1.0', '2.0.0'))
-        self.assertIn('major', compat_error('3.0.0', '2.0.0'))
+        # 0.x: only patch releases are compatible; every minor may break.
+        self.assertIsNone(compat_error('0.1.0', '0.1.0'))
+        self.assertIsNone(compat_error('0.1.0', '0.1.4'))
+        self.assertIn('older', compat_error('0.1.3', '0.1.0'))
+        self.assertIn('incompatible', compat_error('0.1.0', '0.2.0'))
+        self.assertIn('incompatible', compat_error('0.1.0', '1.0.0'))
+        # >= 1.0: same major and installed >= pinned.
+        self.assertIsNone(compat_error('1.0.0', '1.3.1'))
+        self.assertIn('older', compat_error('1.4.0', '1.0.0'))
+        self.assertIn('incompatible', compat_error('1.0.0', '2.0.0'))
 
     def test_invalid_version(self):
         with self.assertRaises(ValueError):
@@ -143,10 +148,10 @@ class ProjectConfigRuleTests(unittest.TestCase):
 
     def test_config_rejects_incompatible_core_and_absolute_paths(self):
         config = copy.deepcopy(self.config)
-        config['core_version'] = '1.1.0'
+        config['core_version'] = '0.2.0'
         config['scope']['allowed_paths'] = ['/etc/**']
         errors = self.errors(config)
-        self.assertTrue(any('major' in e for e in errors))
+        self.assertTrue(any('incompatible' in e for e in errors))
         self.assertTrue(any('/etc/**' in e for e in errors))
 
 

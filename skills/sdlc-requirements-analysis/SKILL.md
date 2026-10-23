@@ -3,7 +3,7 @@ name: sdlc-requirements-analysis
 description: Analyze feature and business requirements into traceable PRD/SRS, user stories and measurable acceptance criteria. Use for discovery, requirement clarification, backlog grooming and documentation.
 metadata:
   package: ai-sdlc-core
-  version: "2.1.0"
+  version: "0.1.0"
 ---
 
 # Requirements Analysis

@@ -1,5 +1,5 @@
 {
-  "version": "2.0",
+  "version": "0.1",
   "note": "Canonical SDLC phase manifest of AI SDLC Core. Not an Orca-executed workflow definition; projects enable a subset via .ai-sdlc/project.json (sdlc.enabled_phases).",
   "phases": [
     {

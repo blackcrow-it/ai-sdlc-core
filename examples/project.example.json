@@ -1,6 +1,6 @@
 {
-  "schema_version": "2.0",
-  "core_version": "2.0.0",
+  "schema_version": "0.1",
+  "core_version": "0.1.0",
   "project": {
     "id": "PROJECT-SHOP-API",
     "name": "Shop API",

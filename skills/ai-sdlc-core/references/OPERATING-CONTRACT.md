@@ -53,5 +53,6 @@ Do not invent Orca CLI flags, fake worker completion, or retry dispatch after un
 
 ## Versioning
 - The core version lives in `core.json` and in every bundled `SKILL.md` (`metadata.version`); they must match.
-- Projects pin `core_version`. Same major and installed >= pinned is compatible; `sdlc.py upgrade` moves the pin.
-- A major version change requires a documented migration; never silently reinterpret an older project config.
+- Projects pin `core_version`. Compatible means the same semver line (MAJOR, or 0.MINOR while MAJOR is 0) with
+  installed >= pinned; `sdlc.py upgrade` moves the pin.
+- An incompatible version change requires a documented upgrade note; never silently reinterpret an older project config.

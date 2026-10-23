@@ -1,4 +1,4 @@
-# Kích hoạt Orchestrator trong Orca (AI SDLC Core v2)
+# Kích hoạt Orchestrator trong Orca (AI SDLC Core)
 
 > Cách thường dùng: gõ `/sdlc-orchestrate <mục tiêu>` (hoặc `/sdlc-smoke`) trong phiên Claude Code/Codex của repository.
 > Skill tự chạy các bước dưới đây trong chính phiên đó. Tài liệu này mô tả cơ chế bên dưới và cách làm thủ công.
