@@ -97,10 +97,10 @@
       "technical-writer"
     ],
     "approvers": {
-      "product_owner": null,
-      "tech_lead": null,
-      "security_owner": null,
-      "release_owner": null
+      "product_owner": "Nguyen Quang Hung",
+      "tech_lead": "Nguyen Quang Hung",
+      "security_owner": "Nguyen Quang Hung",
+      "release_owner": "Nguyen Quang Hung"
     },
     "default_max_attempts": 2,
     "release_environments": [
