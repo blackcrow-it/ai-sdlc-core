@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .core import Core, read_json
 from .environment import install_skills, install_targets, run_doctor, upgrade_project
-from .project import COMMAND_KEYS, init_project, load_config, refresh_blocks, validate_config, write_text
+from .project import APPROVER_ROLES, COMMAND_KEYS, init_project, load_config, refresh_blocks, validate_config, write_text
 from .render import (build_activation_prompt, build_smoke_prompt, build_smoke_spec,
                      build_worker_spec, check_smoke_outputs, smoke_paths)
 from .validate import effective_forbidden_actions, validate_core, validate_task
@@ -83,6 +83,14 @@ def cmd_init(core, args):
             'roles': args.role, 'phases': args.phase, 'agent': args.agent,
             'extra_policies': args.extra_policy, 'detect': not args.no_detect}
     opts.update({f'{key}_commands': getattr(args, f'{key}_cmd') for key in COMMAND_KEYS})
+    approvers = {}
+    for item in args.approver or []:
+        role, _, name = item.partition('=')
+        if role not in APPROVER_ROLES or not name.strip():
+            print(f'FAIL: --approver expects ROLE=NAME with ROLE in {", ".join(APPROVER_ROLES)}; got {item!r}')
+            return 1
+        approvers[role] = name.strip()
+    opts['approvers'] = approvers
     try:
         config, actions, evidence = init_project(core, d, opts, force=args.force, dry_run=args.dry_run,
                                                  write_agent_files=not args.no_agent_files)
@@ -289,6 +297,8 @@ def build_parser():
                  'out-of-scope', 'allowed-path', 'protected-path', 'forbidden-action', 'role', 'phase',
                  'extra-policy'):
         p.add_argument(f'--{flag}', action='append', help='repeatable')
+    p.add_argument('--approver', action='append', metavar='ROLE=NAME',
+                   help=f'human approver, ROLE in {", ".join(APPROVER_ROLES)} (repeatable)')
     for key in COMMAND_KEYS:
         p.add_argument(f'--{key}-cmd', action='append', help=f'{key} command (repeatable; overrides detection)')
     p.add_argument('--no-detect', action='store_true', help='do not infer stack/commands from repository files')

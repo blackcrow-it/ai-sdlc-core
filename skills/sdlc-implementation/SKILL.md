@@ -3,7 +3,7 @@ name: sdlc-implementation
 description: Implement a scoped software task in a Git worktree with tests, validation and reviewable diffs. Use during feature development and bug fixes.
 metadata:
   package: ai-sdlc-core
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Implementation

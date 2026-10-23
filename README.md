@@ -1,17 +1,18 @@
-# AI SDLC Core v2.0 – Reusable Agent Skills Package cho Orca ADE
+# AI SDLC Core v2.1 – Reusable Agent Skills Package cho Orca ADE
 
 Một bản **chuẩn, có phiên bản** của toàn bộ tổ chức AI Agent (14 vai trò, 9 workflow SDLC, policy, template,
-schema) được đóng gói thành **Agent Skills**, kèm **Bootstrap CLI** `sdlc.py`. Với mỗi repository mới chỉ cần:
-**cài Skill → khởi tạo cấu hình dự án → kích hoạt Orchestrator**.
+schema) được đóng gói thành **Agent Skills**. Bạn làm việc hoàn toàn bằng **slash command** (theo phong cách bộ skill
+workflow của mattpocock): agent tự chạy engine `sdlc.py`, bạn không cần gõ lệnh Python nào.
+Với mỗi repository mới: **cài Skill → `/sdlc-setup` → `/sdlc-orchestrate`**.
 
-Repo này **không** phải plugin Orca tự chạy, không cung cấp AI model và Bootstrap CLI **không bao giờ** tạo Run/Task/worker
-trong Orca. Mọi thay đổi trạng thái Orca do Orchestrator thực hiện sau khi con người phê duyệt.
+Repo này **không** phải plugin Orca tự chạy và không cung cấp AI model. Engine **không bao giờ** tạo Run/Task/worker;
+mọi thay đổi trạng thái Orca do Orchestrator thực hiện sau khi con người phê duyệt.
 
 ## Mô hình ba lớp
 
 | Lớp | Trách nhiệm | Nằm ở đâu |
 |---|---|---|
-| **AI SDLC Core** | Một phiên bản chuẩn của agents, workflows, policies, templates, schemas, prompt và Bootstrap CLI | Skill `ai-sdlc-core` + 5 role skill `sdlc-*` (thư mục `skills/` của repo này) |
+| **AI SDLC Core** | Một phiên bản chuẩn của agents, workflows, policies, templates, schemas, prompt, engine `sdlc.py` | Skill `ai-sdlc-core`, 5 workflow skill, 5 role skill `sdlc-*` (thư mục `skills/`) |
 | **Orca ADE** | Điều phối Agent: Runs, tasks, supervised workers, Git worktree | Orca runtime + native skill `orca-cli`, `orchestration` |
 | **Repository dự án** | Chỉ cấu hình đặc thù: ngôn ngữ, kiến trúc, lệnh test/lint/build, quy tắc coding, phạm vi chức năng, đường dẫn được ghi/bị bảo vệ, người phê duyệt | `.ai-sdlc/project.json` (+ task contract trong `.ai-sdlc/tasks/`, khối quản lý trong `AGENTS.md`/`CLAUDE.md`) |
 
@@ -23,69 +24,52 @@ không bao giờ cấp quyền) > task spec > workflow/role/skill.
 ### 1. Cài Skill (một lần mỗi máy)
 
 ```bash
-# Orca native skills
-orca skills install --skill orca-cli --skill orchestration
-
-# AI SDLC Core – cách A: community skills CLI (đã kiểm với skills@1.7.4; nguồn là Git URL hoặc đường dẫn clone)
-npx skills add <git-url-hoac-duong-dan-repo-nay> --list        # phải thấy đủ 6 skill
-npx skills add <git-url-hoac-duong-dan-repo-nay> --skill ai-sdlc-core --skill sdlc-requirements-analysis \
-  --skill sdlc-system-design --skill sdlc-implementation --skill sdlc-code-review --skill sdlc-testing \
-  --global --agent claude-code --agent codex --copy -y
-
-# AI SDLC Core – cách B: offline từ bản clone (copy vào ~/.claude/skills và ~/.agents/skills)
-python skills/ai-sdlc-core/scripts/sdlc.py install --dry-run
-python skills/ai-sdlc-core/scripts/sdlc.py install
+orca skills install --skill orca-cli --skill orchestration          # Orca native skills
+npx skills add <git-url-hoac-duong-dan-repo-nay> --skill '*' --global --agent claude-code --agent codex --copy -y
 ```
 
-`install` hỗ trợ `--agent claude|universal` (`.claude/skills` hoặc `.agents/skills` cho Codex và agent khác),
-`--scope project` (cài vào repo hiện tại), `--dest <dir>`, `--force` (chỉ thay thế thư mục skill hợp lệ).
-Role skill có tiền tố `sdlc-` để không đụng skill khác cùng tên (ví dụ `code-review`) đã cài sẵn.
+Lệnh thứ hai cài toàn bộ 11 skill của gói, cú pháp đã kiểm với `skills@1.7.4`; chạy với `--list` để xem trước.
+Nếu không dùng npx, từ bản clone chạy `python skills/ai-sdlc-core/scripts/sdlc.py install` (copy offline vào
+`~/.claude/skills` và `~/.agents/skills`). Cần Python 3.10+ trên máy vì agent dùng nó làm engine.
 
-### 2. Khởi tạo cấu hình dự án (mỗi repository)
+### 2. Dùng trong repository dự án
 
-```bash
-cd /path/to/new-repo
-SDLC="python ~/.claude/skills/ai-sdlc-core/scripts/sdlc.py"   # hoặc ~/.agents/skills/...
+Mở phiên Claude Code hoặc Codex của repository trong Orca, rồi gõ:
 
-$SDLC init \
-  --architecture-style "modular monolith" --architecture-summary "Express REST API + PostgreSQL" \
-  --test-cmd "pnpm run test" --rule "TypeScript strict; no any" \
-  --in-scope "Order management API" --out-of-scope "Payments" --allowed-path "src/**" --allowed-path "tests/**"
-$SDLC validate
-git add .ai-sdlc/project.json AGENTS.md CLAUDE.md .gitignore && git commit -m "Adopt AI SDLC Core"
-```
+| Slash command | Tác dụng |
+|---|---|
+| `/sdlc-setup` | Agent dò stack từ repo, phỏng vấn bạn theo từng vòng (câu hỏi đánh số, kèm đề xuất) về kiến trúc, lệnh test, quy tắc coding, phạm vi, người phê duyệt; ghi và validate `.ai-sdlc/project.json`, commit sau khi bạn đồng ý |
+| `/sdlc-status` | Báo cáo chỉ đọc: core, skill, config, Git baseline, Orca, task, Run đang chạy, và lệnh nên dùng tiếp theo |
+| `/sdlc-smoke` | Chứng minh điều phối Orca chạy được: giám sát một worker BA, dừng chờ `START-ORCA-SMOKE-TEST` |
+| `/sdlc-task <mục tiêu>` | Tạo một task contract đã validate và worker spec tự chứa, không dispatch |
+| `/sdlc-orchestrate <mục tiêu hoặc file brief>` | Phiên hiện tại trở thành Orchestrator: lập DAG, dừng chờ `APPROVE-SDLC-PLAN`, rồi dispatch, theo dõi, kiểm chứng worker |
 
-`init` suy luận ngôn ngữ/lệnh **chỉ từ bằng chứng** (`package.json` scripts, lockfile, `go.mod`, `Cargo.toml`,
-`pom.xml`, Gradle, `*.csproj`, pytest/ruff/mypy config, `Makefile`…) và in rõ nguồn `DETECTED ...`. Không có bằng chứng thì
-để trống và `validate` báo lỗi (ví dụ thiếu `commands.test`) thay vì đoán. Nội dung `AGENTS.md`/`CLAUDE.md` sẵn có được giữ nguyên;
-CLI chỉ chèn/cập nhật khối giữa `<!-- ai-sdlc-core:begin -->` và `<!-- ai-sdlc-core:end -->`.
+Ví dụ: `/sdlc-orchestrate Thêm đăng nhập bằng email cho API đơn hàng`.
 
-### 3. Kích hoạt Orchestrator
+Các workflow có tác dụng thay đổi (`setup`, `task`, `smoke`, `orchestrate`) có `disable-model-invocation: true`, tức
+chỉ chạy khi bạn gọi. `/sdlc-status` thì agent được tự gọi khi bạn hỏi kiểu "AI SDLC đã sẵn sàng chưa?".
 
-```bash
-$SDLC doctor                          # read-only: Python, Git baseline, config, skills, orca status, orca skills
-$SDLC activate --brief docs/brief.md  # -> .ai-sdlc/runs/orchestrator-activation.md
-$SDLC activate --smoke                # tuỳ chọn: smoke test 1 worker BA (-> .ai-sdlc/runs/smoke-test/)
-```
-
-Mở phiên Claude Code/Codex của repository trong Orca và dán prompt. Orchestrator chỉ đọc, kiểm tra và đề xuất DAG; chỉ khi
-bạn gửi `APPROVE-SDLC-PLAN` (smoke test: `START-ORCA-SMOKE-TEST`) mới được tạo Run/Task/worker. Chi tiết:
+Khi setup, `init` chỉ suy luận ngôn ngữ và lệnh **từ bằng chứng** trong repo (`package.json` scripts, lockfile, `go.mod`,
+`Cargo.toml`, `pom.xml`, Gradle, `*.csproj`, cấu hình pytest/ruff/mypy, `Makefile`…). Thiếu lệnh test thì agent hỏi bạn,
+không đoán. Nội dung `AGENTS.md`/`CLAUDE.md` sẵn có được giữ nguyên; chỉ khối giữa
+`<!-- ai-sdlc-core:begin -->` và `<!-- ai-sdlc-core:end -->` được chèn hoặc cập nhật. Chi tiết:
 [ORCHESTRATOR-ACTIVATION](skills/ai-sdlc-core/references/ORCHESTRATOR-ACTIVATION.md), [ORCA-SETUP](skills/ai-sdlc-core/references/ORCA-SETUP.md).
 
-## Bootstrap CLI `sdlc.py`
+## Engine `sdlc.py` (nâng cao: CI, script, gỡ lỗi)
 
-Python 3.10+, chỉ thư viện chuẩn. Mọi lệnh nhận `-C <project-dir>` (mặc định thư mục hiện tại).
+Các workflow skill gọi engine này; bạn chỉ cần dùng trực tiếp khi chạy CI hoặc gỡ lỗi. Python 3.10+, chỉ thư viện chuẩn.
+Mọi lệnh nhận `-C <project-dir>` (mặc định thư mục hiện tại).
 
 | Lệnh | Tác dụng |
 |---|---|
 | `version`, `where [--json]` | Phiên bản và đường dẫn core đã cài (các đường dẫn `agents/...`, `policies/...` trong tài liệu core tính từ đây) |
-| `install` | Copy 6 skill vào thư mục skill của agent (offline) |
-| `init` | Tạo `.ai-sdlc/project.json`, khối quản lý `AGENTS.md`/`CLAUDE.md`, ignore `.ai-sdlc/runs/` (`--dry-run`, `--force`, `--no-detect`, `--no-agent-files`) |
+| `install` | Copy 11 skill vào thư mục skill của agent (offline) |
+| `init` | Tạo `.ai-sdlc/project.json`, khối quản lý `AGENTS.md`/`CLAUDE.md`, ignore `.ai-sdlc/runs/` (`--approver ROLE=NAME`, `--dry-run`, `--force`, `--no-detect`, `--no-agent-files`) |
 | `validate [--task F] [--core-only] [--bundled]` | Kiểm tra toàn vẹn core, config dự án (schema + quy tắc) và task contract |
 | `doctor [--offline] [--json]` | Kiểm tra sẵn sàng, chỉ đọc; exit 1 khi có FAIL |
 | `task new --id --title --role` | Tạo task contract nháp trong `.ai-sdlc/tasks/`, điền sẵn checks/forbidden actions từ config |
 | `spec --task F` | Render worker spec tự chứa (role, policy, cấu hình dự án, phạm vi, checks) vào `.ai-sdlc/runs/specs/` |
-| `activate [--brief F] [--smoke] [--agent claude\|codex]` | Render prompt kích hoạt Orchestrator |
+| `activate [--brief F] [--smoke] [--stdout] [--agent claude\|codex]` | Render prompt kích hoạt Orchestrator |
 | `smoke spec\|check` | Spec smoke test BA / kiểm tra tĩnh output |
 | `upgrade [--dry-run]` | Chuyển `core_version` của dự án lên core đã cài nếu tương thích, làm mới khối quản lý |
 
@@ -123,7 +107,8 @@ không còn placeholder `REPLACE`. Protected paths và forbidden actions mặc �
 | `skills/ai-sdlc-core/references/` | Operating contract, handoff, gán role, thiết lập Orca, kích hoạt Orchestrator |
 | `skills/ai-sdlc-core/assets/` | Template prompt/spec, khối `AGENTS.md`/`CLAUDE.md`, brief smoke test |
 | `skills/ai-sdlc-core/scripts/` | Bootstrap CLI `sdlc.py` + gói `sdlc_core` |
-| `skills/sdlc-*/SKILL.md` | 5 role skill: requirements-analysis, system-design, implementation, code-review, testing |
+| `skills/sdlc-{setup,status,task,smoke,orchestrate}/` | 5 workflow skill (slash command) + `agents/openai.yaml` cho Codex |
+| `skills/sdlc-{requirements-analysis,system-design,implementation,code-review,testing}/` | 5 role skill cho worker |
 | `.ai-sdlc/project.json` | Repo này cũng được quản lý bằng chính core (dogfooding) |
 | `examples/` | Config mẫu, task contract mẫu, hồ sơ DAG demo-auth từ v1.1 |
 | `tests/` | Unit/integration test cho core và CLI |
@@ -157,6 +142,12 @@ v1.1 đặt toàn bộ cấu hình ở gốc repo; v2.0 chuyển chúng vào ski
 
 Dự án đang dùng bản sao v1.1: cài skill v2.0, chạy `sdlc.py init`, chuyển quy tắc riêng của dự án vào
 `.ai-sdlc/project.json` (hoặc `extra_policies`), rồi xoá các bản sao `agents/`, `workflows/`, `policies/`… khỏi repo dự án.
+
+### v2.0 → v2.1
+
+v2.1 thêm 5 workflow skill (`/sdlc-setup`, `/sdlc-status`, `/sdlc-task`, `/sdlc-smoke`, `/sdlc-orchestrate`) và flag
+`init --approver`; config 2.0 vẫn tương thích. Cài lại skill, rồi chạy `/sdlc-status` trong từng dự án: agent sẽ đề xuất
+`upgrade` để chuyển pin lên 2.1.0 và làm mới khối quản lý trong `AGENTS.md`/`CLAUDE.md`.
 
 ## Giới hạn quan trọng
 

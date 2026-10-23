@@ -3,7 +3,7 @@ name: sdlc-system-design
 description: Design software architecture, APIs and databases with tradeoffs, ADRs, security boundaries, migration and rollback plans. Use for new systems and significant technical change.
 metadata:
   package: ai-sdlc-core
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # System Design

@@ -1,5 +1,8 @@
 # Kích hoạt Orchestrator trong Orca (AI SDLC Core v2)
 
+> Cách thường dùng: gõ `/sdlc-orchestrate <mục tiêu>` (hoặc `/sdlc-smoke`) trong phiên Claude Code/Codex của repository.
+> Skill tự chạy các bước dưới đây trong chính phiên đó. Tài liệu này mô tả cơ chế bên dưới và cách làm thủ công.
+
 ## Mục tiêu
 Từ một repository đã `sdlc.py init`, sinh prompt kích hoạt Orchestrator có đầy đủ cấu hình dự án + đường dẫn core,
 dán vào phiên Claude Code/Codex trong Orca, để Orchestrator lập DAG, **chờ phê duyệt**, rồi điều phối supervised workers.

@@ -3,7 +3,7 @@ name: sdlc-testing
 description: Plan and execute unit, integration, E2E and regression tests tied to acceptance criteria. Use for QA and release validation.
 metadata:
   package: ai-sdlc-core
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Testing

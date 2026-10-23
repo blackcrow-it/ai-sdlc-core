@@ -22,7 +22,7 @@ core, including this one. Reply to the user in Vietnamese unless requested other
 <!-- ai-sdlc-core:begin -->
 ## AI SDLC Core (managed by `sdlc.py`; edit `.ai-sdlc/project.json` instead of this block)
 
-This repository is governed by **AI SDLC Core v2.0.0** (Agent Skill `ai-sdlc-core`). It stores only
+This repository is governed by **AI SDLC Core v2.1.0** (Agent Skill `ai-sdlc-core`). It stores only
 project-specific configuration; roles, workflows, policies, templates and schemas come from the installed core.
 
 - Reply to the user in Vietnamese unless asked otherwise; technical artifacts may be in English.
@@ -32,7 +32,8 @@ project-specific configuration; roles, workflows, policies, templates and schema
   `~/.claude/skills`, `~/.agents/skills`).
 - Precedence: human instructions > repository/CI evidence > core policies > `.ai-sdlc/project.json` (may only tighten core
   policies, never grants permissions) > task spec > core workflow, role and skill files.
-- Orchestrator: `sdlc.py doctor`, then `sdlc.py activate` renders the activation prompt. Workers receive
-  self-contained specs rendered by `sdlc.py spec`.
+- Workflow: `/sdlc-status` (readiness), `/sdlc-task <goal>` (task contract + spec), `/sdlc-smoke` (prove Orca),
+  `/sdlc-orchestrate <objective>` (act as Orchestrator; stop for `APPROVE-SDLC-PLAN`). Agents run the engine
+  `sdlc.py` themselves; workers receive self-contained specs rendered by `sdlc.py spec`.
 - Before reporting done, run the relevant `commands` from `.ai-sdlc/project.json` and cite real changed paths and exit codes.
 <!-- ai-sdlc-core:end -->

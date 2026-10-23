@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Smoke Test"
+  short_description: "Prove Orca orchestration with one BA worker"
+policy:
+  allow_implicit_invocation: false

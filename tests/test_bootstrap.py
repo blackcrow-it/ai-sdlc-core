@@ -96,6 +96,14 @@ class InitTests(ProjectTestCase):
         self.assertEqual(code, 1)
         self.assertIn('commands.test', out)
 
+    def test_approver_flag(self):
+        config = self.init('--approver', 'product_owner=Jane Doe', '--approver', 'release_owner=Ops Lead')
+        self.assertEqual(config['sdlc']['approvers'],
+                         {'product_owner': 'Jane Doe', 'tech_lead': None, 'security_owner': None, 'release_owner': 'Ops Lead'})
+        code, out = self.cli('init', *INIT_FLAGS, '--force', '--approver', 'cto=Someone')
+        self.assertEqual(code, 1)
+        self.assertIn('--approver expects ROLE=NAME', out)
+
     def test_dry_run_writes_nothing(self):
         code, out = self.cli('init', *INIT_FLAGS, '--dry-run')
         self.assertEqual(code, 0)
@@ -131,7 +139,7 @@ class RenderTests(ProjectTestCase):
         code, out = self.cli('activate', '--offline', '--brief', 'brief.md')
         self.assertEqual(code, 0, out)
         prompt = (self.dir / '.ai-sdlc' / 'runs' / 'orchestrator-activation.md').read_text(encoding='utf-8')
-        for key in ('AI SDLC Core 2.0.0', 'APPROVE-SDLC-PLAN', 'orca skills get orchestration --full',
+        for key in (f'AI SDLC Core {CORE.version}', 'APPROVE-SDLC-PLAN', 'orca skills get orchestration --full',
                     'brief.md', 'Shop API', 'npm run test', 'doctor'):
             self.assertIn(key, prompt)
         self.assertNotIn('{{', prompt)

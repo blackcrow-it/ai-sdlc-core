@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Setup"
+  short_description: "Adopt AI SDLC Core in this repo"
+policy:
+  allow_implicit_invocation: false

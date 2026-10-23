@@ -1,9 +1,9 @@
 ---
 name: ai-sdlc-core
-description: AI SDLC Core v2 - reusable multi-agent SDLC package (14 roles, 9 workflows, policies, templates, schemas) with a Bootstrap CLI. Use when setting up AI SDLC in a repository (".ai-sdlc/project.json", "init sdlc"), validating that config, creating task contracts or Orca worker specs, or activating/acting as the SDLC Orchestrator or an SDLC worker role in Orca ADE.
+description: AI SDLC Core - reusable multi-agent SDLC package (14 roles, 9 workflows, policies, templates, schemas) with a Bootstrap CLI. Use when setting up AI SDLC in a repository (".ai-sdlc/project.json", "init sdlc"), validating that config, creating task contracts or Orca worker specs, or activating/acting as the SDLC Orchestrator or an SDLC worker role in Orca ADE.
 metadata:
   package: ai-sdlc-core
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # AI SDLC Core
@@ -18,16 +18,24 @@ managed block in `AGENTS.md` / `CLAUDE.md`. Orca ADE coordinates the workers; th
 - Paths in `.ai-sdlc/project.json` and in task `allowed_paths` are relative to the **project** repository root.
 - CLI: `python CORE_ROOT/scripts/sdlc.py <command>` (Python 3.10+, stdlib only). It never creates Orca Runs or workers.
 
-## Bootstrap a new repository (human or agent, from the repository root)
-1. `sdlc.py doctor --offline` - confirm the core and the role skills are installed.
-2. `sdlc.py init [--test-cmd ...] [--architecture-style ...] [--rule ...] [--in-scope ...]` - writes
-   `.ai-sdlc/project.json` from explicit flags plus repository evidence (never guesses commands without evidence),
-   adds the managed blocks to `AGENTS.md`/`CLAUDE.md` and ignores `.ai-sdlc/runs/`.
-3. Ask the human to complete what init reported as `TODO`/`WARN`, then `sdlc.py validate`.
-4. Commit `.ai-sdlc/project.json AGENTS.md CLAUDE.md .gitignore` (Orca worktrees are created from commits).
-5. `sdlc.py doctor` (Orca reachable, native `orca-cli`/`orchestration` skills present).
-6. `sdlc.py activate [--brief docs/brief.md]` - renders `.ai-sdlc/runs/orchestrator-activation.md`;
-   `sdlc.py activate --smoke` renders the one-worker BA smoke test instead.
+## Workflow skills (what users invoke)
+Humans drive the SDLC with slash commands; the agent runs `sdlc.py` itself. Users never need to type it.
+
+| Command | Does |
+|---|---|
+| `/sdlc-setup` | Detect the stack, interview the user, write and validate `.ai-sdlc/project.json`, commit it |
+| `/sdlc-status` | Read-only readiness report and the recommended next command |
+| `/sdlc-task <goal>` | One validated task contract plus a self-contained worker spec (no dispatch) |
+| `/sdlc-smoke` | Supervise one BA worker end to end to prove Orca orchestration |
+| `/sdlc-orchestrate <objective or brief>` | Act as Orchestrator in the current session: plan, stop for `APPROVE-SDLC-PLAN`, dispatch, verify |
+
+When a request matches one of these but the user did not invoke it, suggest the command instead of improvising.
+
+## Engine commands (used by the workflow skills, CI and power users)
+`version`, `where`, `install`, `init`, `validate [--task]`, `doctor`, `task new`, `spec --task`,
+`activate [--brief] [--smoke] [--stdout]`, `smoke spec|check`, `upgrade`; `--help` on each.
+`init` infers commands only from repository evidence and prints each `DETECTED` source; `validate` enforces the
+schema and invariants; `activate` renders the Orchestrator prompt.
 
 ## Acting as Orchestrator
 Follow the rendered activation prompt. In short: read `references/OPERATING-CONTRACT.md`, `agents/orchestrator.md`,

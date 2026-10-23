@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Orchestrate"
+  short_description: "Plan, approve and run Orca workers"
+policy:
+  allow_implicit_invocation: false

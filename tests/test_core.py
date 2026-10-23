@@ -1,7 +1,7 @@
 import copy
 import unittest
 
-from helpers import CORE, ROOT, example_task, load
+from helpers import CORE, CORE_ROOT, ROOT, example_task, load
 from sdlc_core import schema
 from sdlc_core.core import compat_error, parse_version
 from sdlc_core.project import validate_config
@@ -13,7 +13,7 @@ class CorePackageTests(unittest.TestCase):
         self.assertEqual(validate_core(CORE, check_bundled_siblings=True), [])
 
     def test_single_canonical_version(self):
-        self.assertEqual(CORE.version, '2.0.0')
+        self.assertEqual(parse_version(CORE.version)[0], 2)
         self.assertEqual(len(CORE.roles), 14)
         self.assertEqual(len(CORE.phases), 9)
 
@@ -21,6 +21,21 @@ class CorePackageTests(unittest.TestCase):
         for role in CORE.roles:
             skill = role['primary_skill']
             self.assertTrue(skill.startswith(('sdlc-', 'orca-native:')), skill)
+
+    def test_workflow_skills_drive_the_engine(self):
+        for name in CORE.manifest['workflow_skills']:
+            skill_dir = CORE_ROOT.parent / name
+            text = (skill_dir / 'SKILL.md').read_text(encoding='utf-8')
+            self.assertIn('ai-sdlc-core', text, name)
+            self.assertIn('scripts/sdlc.py', text, name)
+            self.assertTrue((skill_dir / 'agents' / 'openai.yaml').is_file(), name)
+            # Mutating workflows run only when the user invokes them.
+            if name != 'sdlc-status':
+                self.assertIn('disable-model-invocation: true', text, name)
+                self.assertIn('allow_implicit_invocation: false',
+                              (skill_dir / 'agents' / 'openai.yaml').read_text(encoding='utf-8'), name)
+        for name, keyword in (('sdlc-orchestrate', 'APPROVE-SDLC-PLAN'), ('sdlc-smoke', 'START-ORCA-SMOKE-TEST')):
+            self.assertIn(keyword, (CORE_ROOT.parent / name / 'SKILL.md').read_text(encoding='utf-8'))
 
     def test_no_root_level_copies_of_core_content(self):
         for legacy in ('agents', 'workflows', 'policies', 'templates', 'schemas', 'scripts'):

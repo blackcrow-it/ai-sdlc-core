@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Status"
+  short_description: "Check AI SDLC and Orca readiness"
+policy:
+  allow_implicit_invocation: true

@@ -1,17 +1,25 @@
 {
   "name": "ai-sdlc-core",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "config_schema_version": "2.0",
   "description": "Canonical AI SDLC Core: 14 agent roles, 9 SDLC workflows, policies, templates, schemas and the Bootstrap CLI. Project repositories keep only .ai-sdlc/project.json.",
   "bundled_skills": [
     "ai-sdlc-core",
+    "sdlc-setup",
+    "sdlc-status",
+    "sdlc-task",
+    "sdlc-orchestrate",
+    "sdlc-smoke",
     "sdlc-requirements-analysis",
     "sdlc-system-design",
     "sdlc-implementation",
     "sdlc-code-review",
     "sdlc-testing"
   ],
-  "orca_native_skills": ["orca-cli", "orchestration"],
+  "orca_native_skills": [
+    "orca-cli",
+    "orchestration"
+  ],
   "role_count": 14,
   "phase_count": 9,
   "project_layout": {
@@ -36,5 +44,12 @@
     "destructive_migration",
     "delete_data",
     "disable_ci_or_branch_protection"
+  ],
+  "workflow_skills": [
+    "sdlc-setup",
+    "sdlc-status",
+    "sdlc-task",
+    "sdlc-orchestrate",
+    "sdlc-smoke"
   ]
 }

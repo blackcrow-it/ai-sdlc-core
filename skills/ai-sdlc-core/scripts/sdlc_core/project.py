@@ -12,6 +12,7 @@ from .validate import bad_relative_path
 COMMAND_KEYS = ('install', 'build', 'lint', 'typecheck', 'test', 'e2e', 'security')
 BLOCK_BEGIN = '<!-- ai-sdlc-core:begin -->'
 BLOCK_END = '<!-- ai-sdlc-core:end -->'
+APPROVER_ROLES = ('product_owner', 'tech_lead', 'security_owner', 'release_owner')
 DEVELOPER_ROLES = {'frontend-developer', 'backend-developer', 'database-engineer', 'devops-engineer'}
 SOURCE_DIRS = ('src', 'lib', 'app', 'apps', 'packages', 'pkg', 'cmd', 'internal', 'server',
                'client', 'web', 'api', 'tests', 'test', 'spec', 'docs')
@@ -216,7 +217,7 @@ def build_config(core, project_dir, opts=None):
         'sdlc': {
             'enabled_phases': list(opts.get('phases') or core.phase_names),
             'enabled_roles': list(opts.get('roles') or core.role_ids),
-            'approvers': {'product_owner': None, 'tech_lead': None, 'security_owner': None, 'release_owner': None},
+            'approvers': {**dict.fromkeys(APPROVER_ROLES), **(opts.get('approvers') or {})},
             'default_max_attempts': 2,
             'release_environments': ['staging'],
         },

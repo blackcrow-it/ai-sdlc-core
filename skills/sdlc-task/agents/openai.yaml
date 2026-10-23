@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Task"
+  short_description: "Draft a validated task contract and spec"
+policy:
+  allow_implicit_invocation: false
