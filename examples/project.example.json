@@ -1,0 +1,143 @@
+{
+  "schema_version": "2.0",
+  "core_version": "2.0.0",
+  "project": {
+    "id": "PROJECT-SHOP-API",
+    "name": "Shop API",
+    "description": "Order and catalogue REST API for the demo shop",
+    "default_branch": "main",
+    "repository_url": null,
+    "reply_language": "Vietnamese"
+  },
+  "stack": {
+    "languages": [
+      "typescript"
+    ],
+    "frameworks": [
+      "express"
+    ],
+    "package_manager": "pnpm",
+    "runtimes": [
+      "node>=20"
+    ]
+  },
+  "architecture": {
+    "style": "modular monolith",
+    "summary": "Express REST API with one module per bounded context; PostgreSQL via repository layer",
+    "docs": [
+      "docs/architecture.md"
+    ],
+    "components": [
+      {
+        "name": "api",
+        "paths": [
+          "src/api/**"
+        ],
+        "description": "HTTP routes and validation"
+      },
+      {
+        "name": "domain",
+        "paths": [
+          "src/domain/**"
+        ]
+      }
+    ]
+  },
+  "commands": {
+    "install": [
+      "pnpm install --frozen-lockfile"
+    ],
+    "build": [
+      "pnpm run build"
+    ],
+    "lint": [
+      "pnpm run lint"
+    ],
+    "typecheck": [
+      "pnpm run typecheck"
+    ],
+    "test": [
+      "pnpm run test"
+    ],
+    "e2e": [],
+    "security": [
+      "pnpm audit --prod"
+    ]
+  },
+  "coding_rules": {
+    "rules": [
+      "TypeScript strict mode; no any",
+      "Every endpoint validates input with zod",
+      "New behaviour ships with unit tests"
+    ],
+    "files": [
+      "CONTRIBUTING.md"
+    ]
+  },
+  "scope": {
+    "in_scope": [
+      "Order management API",
+      "Catalogue read API"
+    ],
+    "out_of_scope": [
+      "Payments",
+      "Admin UI"
+    ],
+    "allowed_paths": [
+      "src/**",
+      "tests/**",
+      "docs/**"
+    ],
+    "protected_paths": [
+      "migrations/**"
+    ],
+    "forbidden_actions": [
+      "publish_package"
+    ]
+  },
+  "sdlc": {
+    "enabled_phases": [
+      "discovery",
+      "requirements",
+      "design",
+      "architecture",
+      "planning",
+      "development",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "enabled_roles": [
+      "orchestrator",
+      "product-manager",
+      "business-analyst",
+      "ui-ux-designer",
+      "software-architect",
+      "project-manager",
+      "frontend-developer",
+      "backend-developer",
+      "database-engineer",
+      "qa-engineer",
+      "code-reviewer",
+      "security-engineer",
+      "devops-engineer",
+      "technical-writer"
+    ],
+    "approvers": {
+      "product_owner": "Product Owner (name)",
+      "tech_lead": "Tech Lead (name)",
+      "security_owner": null,
+      "release_owner": "Release Owner (name)"
+    },
+    "default_max_attempts": 2,
+    "release_environments": [
+      "staging"
+    ]
+  },
+  "orca": {
+    "agent": "claude",
+    "worktree_strategy": "per-task",
+    "max_parallel_workers": 2
+  },
+  "extra_policies": []
+}

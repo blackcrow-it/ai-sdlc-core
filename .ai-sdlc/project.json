@@ -1,0 +1,116 @@
+{
+  "schema_version": "2.0",
+  "core_version": "2.0.0",
+  "project": {
+    "id": "PROJECT-AI-SDLC-CORE",
+    "name": "AI SDLC Core",
+    "description": "Reusable AI SDLC Agent Skills package and Bootstrap CLI",
+    "default_branch": "main",
+    "repository_url": null,
+    "reply_language": "Vietnamese"
+  },
+  "stack": {
+    "languages": [
+      "python",
+      "markdown"
+    ],
+    "frameworks": [],
+    "package_manager": "pip",
+    "runtimes": [
+      "python>=3.10"
+    ]
+  },
+  "architecture": {
+    "style": "Agent Skills package + stdlib Python CLI",
+    "summary": "skills/ai-sdlc-core holds canonical roles, workflows, policies, templates, schemas and the sdlc.py Bootstrap CLI; skills/sdlc-* are role skills; consumer repos keep only .ai-sdlc/project.json",
+    "docs": [
+      "README.md"
+    ],
+    "components": []
+  },
+  "commands": {
+    "install": [],
+    "build": [],
+    "lint": [
+      "python skills/ai-sdlc-core/scripts/sdlc.py validate --bundled --task examples/task-auth.json"
+    ],
+    "typecheck": [],
+    "test": [
+      "python -m unittest discover -s tests -v"
+    ],
+    "e2e": [],
+    "security": []
+  },
+  "coding_rules": {
+    "rules": [
+      "Python 3.10+ standard library only for the Bootstrap CLI",
+      "Keep core.json version and every bundled SKILL.md metadata.version identical",
+      "The Bootstrap CLI never creates or mutates Orca Runs, tasks or workers"
+    ],
+    "files": []
+  },
+  "scope": {
+    "in_scope": [
+      "Maintain AI SDLC Core roles, workflows, policies, templates, schemas and the Bootstrap CLI"
+    ],
+    "out_of_scope": [
+      "Application source code of consumer projects"
+    ],
+    "allowed_paths": [
+      "skills/**",
+      "tests/**",
+      "examples/**",
+      "README.md"
+    ],
+    "protected_paths": [
+      "skills/ai-sdlc-core/core.json",
+      "skills/ai-sdlc-core/policies/**"
+    ],
+    "forbidden_actions": []
+  },
+  "sdlc": {
+    "enabled_phases": [
+      "discovery",
+      "requirements",
+      "design",
+      "architecture",
+      "planning",
+      "development",
+      "testing",
+      "deployment",
+      "maintenance"
+    ],
+    "enabled_roles": [
+      "orchestrator",
+      "product-manager",
+      "business-analyst",
+      "ui-ux-designer",
+      "software-architect",
+      "project-manager",
+      "frontend-developer",
+      "backend-developer",
+      "database-engineer",
+      "qa-engineer",
+      "code-reviewer",
+      "security-engineer",
+      "devops-engineer",
+      "technical-writer"
+    ],
+    "approvers": {
+      "product_owner": null,
+      "tech_lead": null,
+      "security_owner": null,
+      "release_owner": null
+    },
+    "default_max_attempts": 2,
+    "release_environments": [
+      "staging"
+    ]
+  },
+  "orca": {
+    "agent": "claude",
+    "worktree_strategy": "per-task",
+    "max_parallel_workers": 2
+  },
+  "extra_policies": []
+}
