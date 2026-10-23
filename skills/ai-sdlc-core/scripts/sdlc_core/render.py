@@ -105,7 +105,8 @@ def scope_command(core, task):
 def build_worker_spec(core, config, task):
     role = core.role(task['owner_agent'])
     core_refs = [role['role_file']] + [p['playbook'] for p in core.phases_owned_by(role['id'])] \
-        + list(POLICIES) + ['references/HANDOFF.md', 'references/DOCUMENTATION-CONTINUITY.md']
+        + list(POLICIES) + ['references/HANDOFF.md', 'references/DOCUMENTATION-CONTINUITY.md',
+                            'references/ROLE-PROFILE-CONTRACT.md']
     for phase in core.phases_owned_by(role['id']):
         core_refs += phase['required_template_paths']
     skill = role['primary_skill']
@@ -143,7 +144,7 @@ def build_worker_spec(core, config, task):
 def build_smoke_spec(core, config):
     paths = smoke_paths(core)
     refs = ['agents/business-analyst.md', 'workflows/requirements.md', *POLICIES,
-            'references/HANDOFF.md']
+            'references/HANDOFF.md', 'references/ROLE-PROFILE-CONTRACT.md']
     values = {
         'core_version': core.version, 'project_name': config['project']['name'],
         'requirements_path': paths['requirements'], 'handoff_path': paths['handoff'],
@@ -159,7 +160,7 @@ def _activation_values(core, config, agent):
     reads = ['references/OPERATING-CONTRACT.md', 'agents/orchestrator.md', 'agents/registry.json',
              'workflows/manifest.json', *POLICIES, 'references/HANDOFF.md',
              'references/ROLE-ASSIGNMENT.md', 'references/ORCHESTRATOR-ACTIVATION.md',
-             'references/DOCUMENTATION-CONTINUITY.md', tracker_doc(config)]
+             'references/DOCUMENTATION-CONTINUITY.md', 'references/ROLE-PROFILE-CONTRACT.md', tracker_doc(config)]
     return {
         'core_version': core.version, 'core_root': core.root.as_posix(),
         'sdlc': f'python "{core.script}"',

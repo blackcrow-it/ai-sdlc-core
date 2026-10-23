@@ -3,12 +3,18 @@ name: sdlc-system-design
 description: Design software architecture, module interfaces, APIs and data models as deep modules at clean seams, compare real alternatives, record hard-to-reverse decisions as ADRs, and plan security boundaries, test seams, migration and rollback. Use for new systems, significant technical change, database design and architecture reviews.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.3"
+  version: "0.1.4"
 ---
 
 # System design
 
 Primary skill of the Software Architect and Database Engineer. Inputs: approved requirements (`input_artifacts`), non-functional targets, `.ai-sdlc/project.json` (`architecture`, `stack`, `scope`) and the codebase.
+
+Read the assigned role profile and core `references/ROLE-PROFILE-CONTRACT.md`. Architecture work applies the
+architect's domain/alternative/failure analysis; database work adds the DB profile's engine-specific query,
+lock, mixed-version migration, reconciliation and recovery checks. Scope determines which apply. Data design
+does not authorise executing migrations or restore drills; a scoped implementation contract uses
+`sdlc-implementation` with its agreed test seams and actual environment permissions.
 
 Call the Skill tool with "sdlc-codebase-design" first: use its vocabulary (module, interface, depth, seam, adapter, leverage, locality) exactly in every design.
 

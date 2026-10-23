@@ -9,7 +9,7 @@ from helpers import CORE, CORE_ROOT, example_task, load, run_cli
 from sdlc_core.environment import tracker_checks
 from sdlc_core.project import BLOCK_BEGIN, detect_stack, suggest_tracker
 from sdlc_core.validate import parse_task
-from sdlc_core.render import SMOKE_HEADINGS, check_headings, smoke_paths
+from sdlc_core.render import SMOKE_HEADINGS, build_worker_spec, check_headings, smoke_paths
 
 INIT_FLAGS = ['--no-detect', '--name', 'Shop API', '--language', 'typescript', '--test-cmd', 'npm run test',
               '--allowed-path', 'src/**', '--architecture-style', 'modular monolith',
@@ -113,6 +113,20 @@ class InitTests(ProjectTestCase):
 
 
 class RenderTests(ProjectTestCase):
+    def test_every_worker_role_has_reachable_profile_and_shared_contract(self):
+        config = self.init()
+        shared = CORE_ROOT / 'references/ROLE-PROFILE-CONTRACT.md'
+        self.assertTrue(shared.is_file())
+        for role in CORE.roles:
+            with self.subTest(role=role['id']):
+                task = example_task()
+                task['owner_agent'] = role['id']
+                spec = build_worker_spec(CORE, config, task)
+                profile = CORE_ROOT / role['role_file']
+                self.assertTrue(profile.is_file())
+                self.assertIn(f'`{profile.as_posix()}`', spec)
+                self.assertEqual(spec.count(f'`{shared.as_posix()}`'), 1)
+
     def test_task_new_then_spec(self):
         self.init()
         code, out = self.cli('task', 'new', '--id', 'TASK-001', '--title', 'Add orders', '--role', 'backend-developer')

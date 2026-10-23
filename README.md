@@ -163,6 +163,36 @@ Các role skill mà worker dùng cũng được siết lại:
   request changes.
 - `sdlc-testing` và `sdlc-requirements-analysis` truy vết yêu cầu → tiêu chí → test, tái hiện lỗi bằng lệnh "đỏ".
 
+### Profile chuyên môn của 14 role
+
+Các profile trong [`agents/`](skills/ai-sdlc-core/agents/) quy định đầu vào, phương pháp, sản phẩm bàn giao,
+bằng chứng hoàn thành và tình huống cần escalation riêng cho từng vai trò:
+
+| Role | Trọng tâm được bổ sung |
+|---|---|
+| Orchestrator | Frontier/phụ thuộc, xung đột writer, vòng sửa–review theo budget, đối soát tích hợp |
+| Product Manager | Vấn đề trước giải pháp, chất lượng tín hiệu, trade-off ưu tiên và phép đo kết quả |
+| Business Analyst | Luật nghiệp vụ, actor/quyền, state/decision table, ngoại lệ và truy vết baseline |
+| UI/UX Designer | Journey đầy đủ trạng thái, component/token, tương tác tiếp cận được, giới hạn prototype |
+| Software Architect | Miền và ownership, phương án/cost/reversibility, contract và lỗi từng phần |
+| Project Manager | Task bám spec, critical dependency, writer dùng chung, ước lượng và thay đổi scope |
+| Frontend Developer | State async, khôi phục UI, accessibility/responsive, xác minh kết quả qua API |
+| Backend Developer | Auth/tenant, hợp đồng lỗi, transaction/concurrency/idempotency và lỗi dependency |
+| Database Engineer | Query plan, lock theo engine, mixed-version migration, reconciliation và recovery |
+| QA Engineer | Coverage theo rủi ro, repro, bằng chứng phù hợp từng claim và giới hạn go/no-go |
+| Code Reviewer | Ba trục review, nguyên nhân/hậu quả cụ thể, finding có bằng chứng và retest |
+| Security Engineer | Threat → control → test, business-logic abuse, exploitability/impact và kiểm tra fix |
+| DevOps Engineer | Artifact tái tạo được, plan khác execution, health/stop/recovery và bằng chứng release |
+| Technical Writer | Tài liệu theo audience/task, ví dụ đã kiểm tra, version/status và hướng dẫn migration |
+
+Worker đọc thêm [`ROLE-PROFILE-CONTRACT.md`](skills/ai-sdlc-core/references/ROLE-PROFILE-CONTRACT.md) về nguồn
+sự thật, phạm vi, bằng chứng và handoff. Các skill dùng chung phân nhánh theo role: task UI, planning hay viết
+hướng dẫn không mặc nhiên tạo PRD/SRS mới. Profile là hướng dẫn chuyên môn, không cấp thêm quyền, tool hay KPI.
+
+Phần nâng cấp tham khảo có chọn lọc [agency-agents](https://github.com/msitarzewski/agency-agents/tree/4e3ac3ca6604c75113f52c695dbddcc7af928b46),
+giữ 14 role/ID và cơ chế SDLC hiện có. Bảng ánh xạ nguồn, phần áp dụng và phần chủ động loại bỏ nằm trong
+[`ROLE-PROFILE-SOURCES.md`](skills/ai-sdlc-core/references/ROLE-PROFILE-SOURCES.md); giấy phép MIT đi kèm gói.
+
 ### Cắt task: tracer bullet
 
 [`references/TASK-AUTHORING.md`](skills/ai-sdlc-core/references/TASK-AUTHORING.md) là quy tắc chung cho
@@ -367,7 +397,7 @@ python skills/ai-sdlc-core/scripts/sdlc.py doctor --offline
 
 ## Phiên bản (Versioning)
 
-Bản hiện tại là **0.1.3**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
+Bản hiện tại là **0.1.4**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
 `metadata.version` của mọi `SKILL.md` trong gói; `sdlc.py validate --bundled` buộc các giá trị này khớp nhau.
 Mỗi dự án pin `core_version` trong `.ai-sdlc/project.json`. Quy tắc tương thích theo semver:
 
@@ -404,6 +434,14 @@ trường mới; engine cũ chưa nhận map này. `/sdlc-setup` hỏi lựa ch�
 project đã có; thay đổi config hiện hữu cần được người dùng cho phép, không dùng `init --force` chỉ để thêm map.
 Không thêm runtime dispatcher vào Bootstrap CLI và không tự thay đổi cấu hình Orca/model/quyền.
 
+### Nâng cấp 0.1.3 → 0.1.4
+
+Nâng cấp phương pháp và tiêu chí hoàn thành của 14 role, thêm hợp đồng thực thi chung và định tuyến artifact
+trong các skill dùng chung. Giữ config/task schema, role ID, primary skill, CLI routing và approval gate hiện có;
+project pin cùng dòng `0.1.x` vẫn tương thích. Cài lại core cùng toàn bộ bundled skills `0.1.4`, rồi render lại
+activation/worker specs để có các reference mới; không tự sửa config hay thay đổi trạng thái task đang chạy.
+Các năng lực, phương án và ví dụ trong profile chỉ áp dụng theo scope/requirement đã được giao.
+
 ## Giới hạn quan trọng
 
 - Git worktree tách nhánh mã nguồn, **không cô lập quyền hệ điều hành/mạng/secrets**.
@@ -420,3 +458,7 @@ Các skill `sdlc-grilling`, `sdlc-domain-modeling`, `sdlc-codebase-design`, `sdl
 `sdlc-retro`, `sdlc-help`, trục Spec/Standards của `sdlc-code-review` và quy tắc cắt task được chuyển thể từ
 [mattpocock/skills](https://github.com/mattpocock/skills) (MIT, © 2026 Matt Pocock). Mẫu PR theo dạng "show me" của
 Dex Horthy (HumanLayer). Xem [THIRD_PARTY_NOTICES.md](skills/ai-sdlc-core/THIRD_PARTY_NOTICES.md) (đi kèm mọi bản cài).
+
+Các role profile tham khảo và chuyển thể chọn lọc từ
+[msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents/tree/4e3ac3ca6604c75113f52c695dbddcc7af928b46)
+(MIT, copyright 2025 AgentLand Contributors). Bản quyền và giấy phép đầy đủ nằm trong cùng third-party notice.

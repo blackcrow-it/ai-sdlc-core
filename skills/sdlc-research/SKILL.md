@@ -3,7 +3,7 @@ name: sdlc-research
 description: Investigate a question against high-trust primary sources (official docs, specs, source code, first-party APIs) and capture the cited findings as one Markdown file in the repository, run as a background agent. Use when a decision waits on external facts - a library, API, standard, regulation or vendor capability - or when the user wants reading legwork delegated.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.3"
+  version: "0.1.4"
 ---
 
 Spin up a **background agent** for the research, so you keep working while it reads. (If the harness has no background agents, do it inline and say so.)

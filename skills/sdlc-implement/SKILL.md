@@ -5,7 +5,7 @@ argument-hint: "TASK-NNN, issue number or Jira key (optional: pick from the fron
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.3"
+  version: "0.1.4"
 ---
 
 Carry out **one** task contract in the repository at the current working directory. One task per invocation: never start a sibling task, and clear the context (`/clear`) before the next one. Each contract is self-contained, so the previous task's context is disposable.

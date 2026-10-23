@@ -3,7 +3,7 @@ name: ai-sdlc-core
 description: AI SDLC Core - reusable multi-agent SDLC package (14 roles, 9 workflows, policies, templates, schemas) with a Bootstrap CLI. Use when setting up AI SDLC in a repository (".ai-sdlc/project.json", "init sdlc"), validating that config, creating task contracts or Orca worker specs, or activating/acting as the SDLC Orchestrator or an SDLC worker role in Orca ADE.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.3"
+  version: "0.1.4"
 ---
 
 # AI SDLC Core
@@ -76,9 +76,15 @@ capabilities on its execution host per `references/ROLE-ASSIGNMENT.md`. This rou
 
 ## Acting as an SDLC worker
 Your task spec is self-contained. Read the role file `agents/<role>.md`, the referenced workflow, policies and
-`references/HANDOFF.md`, plus the project files listed in the spec. Work on that one task only, run the project's
+`references/ROLE-PROFILE-CONTRACT.md` and `references/HANDOFF.md`, plus the project files listed in the spec.
+The role supplies domain-specific working methods, artifacts and completion evidence; the primary skill supplies
+the shared discipline. For product/BA/UX/planning/writing work, choose the role's actual artifact rather than
+creating a PRD/SRS by default. Work on that one task only, run the project's
 configured commands and the spec's scope check, and report real exit codes. Role skills: `sdlc-requirements-analysis`,
 `sdlc-system-design`, `sdlc-implementation`, `sdlc-code-review`, `sdlc-testing`; they load the discipline skills.
+
+When maintaining or comparing role profiles, read `references/ROLE-PROFILE-SOURCES.md` for the pinned upstream
+adaptation map and deliberate exclusions; attribution/licence is in `THIRD_PARTY_NOTICES.md`.
 
 ## Non-negotiables
 - Precedence: human > repository/CI evidence > core policies > project config (can only tighten) > task spec > role/skill.

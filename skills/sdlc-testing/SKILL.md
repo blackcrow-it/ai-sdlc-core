@@ -3,12 +3,17 @@ name: sdlc-testing
 description: Plan and execute unit, integration, E2E, regression and security tests tied to acceptance criteria, judge test quality, reproduce defects with a red-capable loop, and give an evidence-based go/no-go. Use for QA, security testing, test reports and release validation.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.3"
+  version: "0.1.4"
 ---
 
 # Testing
 
 Primary skill of the QA Engineer and Security Engineer. Inputs: acceptance criteria and requirement IDs, the code revision, `test_seams` of the tasks under test, the test environment and `.ai-sdlc/project.json` `commands`.
+
+Read the assigned role profile and core `references/ROLE-PROFILE-CONTRACT.md`. QA emphasises risk-based journey
+coverage and evidence limits; security adds threat/control/test mapping, assessment authorisation and findings
+with exploitability/business impact. Use screenshots for visual state and assertions or recorded outcomes for
+behaviour; missing evidence is not a fabricated defect. Apply project targets rather than upstream metric quotas.
 
 ## Procedure
 

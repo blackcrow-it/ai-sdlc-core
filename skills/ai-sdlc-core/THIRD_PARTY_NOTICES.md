@@ -1,6 +1,6 @@
 # Third-party notices
 
-AI SDLC Core adapts material from the following project. The adapted skills were rewritten for this package's task
+AI SDLC Core adapts material from the following projects. The adapted content was rewritten for this package's task
 contracts, single tracker, policies and Orca orchestration; the original wording and structure remain recognisable.
 
 ## mattpocock/skills
@@ -43,3 +43,39 @@ SOFTWARE.
 `templates/pull-request.md` follows the "show me" pattern by Dex Horthy (HumanLayer,
 https://github.com/humanlayer/skills), as credited in mattpocock/skills. Only the section structure (summary visual,
 evidence, merge danger) is reused; the text is written for this package.
+
+## msitarzewski/agency-agents
+
+Source: https://github.com/msitarzewski/agency-agents/tree/4e3ac3ca6604c75113f52c695dbddcc7af928b46
+(reviewed 2026-10-23).
+
+Selectively adapted into all 14 `agents/*.md` role profiles, `references/ROLE-PROFILE-CONTRACT.md` and the
+role-specific artifact guidance in the primary SDLC skills. The exact per-role source mapping and adaptation
+limits are in `references/ROLE-PROFILE-SOURCES.md`. The local role IDs, task contracts, permission/approval
+policies, tracker and Orca lifecycle are AI SDLC Core's own integration, not the upstream runtime.
+
+The following notice is reproduced from that revision's `LICENSE`:
+
+```
+MIT License
+
+Copyright (c) 2025 AgentLand Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

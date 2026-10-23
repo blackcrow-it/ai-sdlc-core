@@ -5,7 +5,7 @@ argument-hint: "Your situation, e.g. \"I have an SRS in Word\" or \"tests are fl
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.3"
+  version: "0.1.4"
 ---
 
 # AI SDLC help

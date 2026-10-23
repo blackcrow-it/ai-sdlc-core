@@ -3,12 +3,17 @@ name: sdlc-implementation
 description: Implement exactly one SDLC task contract in its worktree or task branch - test-first at the contract's test seams, inside allowed_paths, with the configured checks, a scope check and a review-ready handoff. Use when a frontend, backend or DevOps task is assigned, during feature development and bug fixes.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.3"
+  version: "0.1.4"
 ---
 
 # Implementation
 
 Primary skill of the frontend, backend and DevOps roles. `SDLC` = `python "<CORE>/scripts/sdlc.py"` (locate `<CORE>` with `sdlc.py where`).
+
+Read the assigned role profile and core `references/ROLE-PROFILE-CONTRACT.md`: use the frontend journey/state
+checks, backend contract/concurrency checks, DevOps artifact/operation checks, or DB migration checks when a
+database implementation contract is assigned. Apply only the relevant checks inside its scope; capabilities
+listed by a profile do not authorise infrastructure, production or contract changes.
 
 ## One task, one contract
 
