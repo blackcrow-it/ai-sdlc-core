@@ -13,6 +13,7 @@ COMMAND_KEYS = ('install', 'build', 'lint', 'typecheck', 'test', 'e2e', 'securit
 BLOCK_BEGIN = '<!-- ai-sdlc-core:begin -->'
 BLOCK_END = '<!-- ai-sdlc-core:end -->'
 APPROVER_ROLES = ('product_owner', 'tech_lead', 'security_owner', 'release_owner')
+TRIAGE_ROLES = ('bug', 'enhancement', 'needs-triage', 'needs-info', 'ready-for-agent', 'ready-for-human', 'wontfix')
 DEVELOPER_ROLES = {'frontend-developer', 'backend-developer', 'database-engineer', 'devops-engineer'}
 SOURCE_DIRS = ('src', 'lib', 'app', 'apps', 'packages', 'pkg', 'cmd', 'internal', 'server',
                'client', 'web', 'api', 'tests', 'test', 'spec', 'docs')
@@ -158,6 +159,22 @@ def _git(project_dir, *args):
     return cp.stdout.strip() if cp.returncode == 0 else None
 
 
+def changed_paths(project_dir, base=None, default_branch='main'):
+    """Paths changed since `base` (default: merge-base with the default branch): committed, staged,
+    unstaged and untracked. Returns (base, sorted paths) or raises ValueError when Git cannot answer."""
+    base = base or _git(project_dir, 'merge-base', 'HEAD', default_branch)
+    if not base or _git(project_dir, 'rev-parse', '--verify', '--quiet', f'{base}^{{commit}}') is None:
+        raise ValueError(f'cannot resolve the base commit {base or "(merge-base with " + default_branch + ")"}; pass --base')
+    paths = set()
+    for args in (('diff', '--name-only', f'{base}...HEAD'), ('diff', '--name-only', 'HEAD'),
+                 ('ls-files', '--others', '--exclude-standard')):
+        out = _git(project_dir, *args)
+        if out is None:
+            raise ValueError(f'git {" ".join(args)} failed')
+        paths.update(line.strip() for line in out.splitlines() if line.strip())
+    return base, sorted(paths)
+
+
 def suggest_tracker(project_dir):
     """Suggest (provider, project, evidence) from the origin remote; the user confirms the choice."""
     url = _git(project_dir, 'remote', 'get-url', 'origin') or ''
@@ -235,6 +252,7 @@ def build_config(core, project_dir, opts=None):
             'provider': opts.get('tracker') or 'local',
             'project': opts.get('tracker_project'),
             'notes': opts.get('tracker_notes') or '',
+            **({'triage_labels': dict(opts['triage_labels'])} if opts.get('triage_labels') else {}),
         },
         'orca': {
             'agent': opts.get('agent') or 'claude',

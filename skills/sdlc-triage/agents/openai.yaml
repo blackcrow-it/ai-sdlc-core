@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Triage"
+  short_description: "Move incoming issues to agent-ready task contracts"
+policy:
+  allow_implicit_invocation: false

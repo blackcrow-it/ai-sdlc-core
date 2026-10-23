@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Retro"
+  short_description: "Improve the agents environment after a session"
+policy:
+  allow_implicit_invocation: false

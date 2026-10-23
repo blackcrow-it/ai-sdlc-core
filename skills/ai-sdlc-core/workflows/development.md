@@ -20,7 +20,7 @@
 - `templates/task.md`
 
 ## Quality gate
-Implementation exists, focused checks pass, changes traceable, independent review requested.
+Implementation exists, built test-first at the task's test seams, focused checks pass, `sdlc.py scope` passes, changes traceable, independent three-axis review (`sdlc-code-review`) requested.
 
 ## Exception / failure policy
 Parallel workers must use nonconflicting scope / worktrees.

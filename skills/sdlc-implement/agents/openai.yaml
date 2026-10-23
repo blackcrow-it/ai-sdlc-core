@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Implement"
+  short_description: "Carry out one task contract in this session"
+policy:
+  allow_implicit_invocation: false

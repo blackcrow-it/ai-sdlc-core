@@ -20,27 +20,44 @@ managed block in `AGENTS.md` / `CLAUDE.md`. Orca ADE coordinates the workers; th
 
 ## Workflow skills (what users invoke)
 Humans drive the SDLC with slash commands; the agent runs `sdlc.py` itself. Users never need to type it.
+`/sdlc-help` maps every flow.
 
 | Command | Does |
 |---|---|
-| `/sdlc-brief <idea>` | Interview the user and write `docs/brief.md` from `templates/project-brief.md`, commit it |
+| `/sdlc-help <situation>` | Which skill or flow fits; phase boundaries (continue, clear, handoff, sub-agent, compact) |
 | `/sdlc-setup` | Detect the stack, interview the user, write and validate `.ai-sdlc/project.json`, commit it |
-| `/sdlc-status` | Read-only readiness report and the recommended next command |
+| `/sdlc-status` | Read-only readiness report, the task frontier and the recommended next command |
+| `/sdlc-brief <idea>` | Interview the user and write `docs/brief.md` from `templates/project-brief.md`, commit it |
+| `/sdlc-grill <plan>` | Sharpen a plan by interview; update `GLOSSARY.md` and ADRs inline |
+| `/sdlc-spec` | Turn the conversation into `docs/specs/<feature>.md` from `templates/feature-spec.md`, commit it |
+| `/sdlc-plan <spec>` | Tracer-bullet task contracts with blocking edges, reviewed with the user, published to the tracker |
 | `/sdlc-task <goal>` | One validated task contract plus a self-contained worker spec (no dispatch) |
+| `/sdlc-implement <task>` | Carry out one task contract in this session: test-first, checks, scope check, independent review, commit |
 | `/sdlc-smoke` | Supervise one BA worker end to end to prove Orca orchestration |
 | `/sdlc-orchestrate <objective or brief>` | Act as Orchestrator in the current session: plan, stop for `APPROVE-SDLC-PLAN`, dispatch, verify |
+| `/sdlc-triage <request>` | Move incoming tracker issues to agent-ready task contracts, needs-info or wontfix |
+| `/sdlc-retro` | Propose environment improvements (checks, rules, pointers) after a session or Run |
 
 When a request matches one of these but the user did not invoke it, suggest the command instead of improvising.
 
+## Discipline skills (model-invoked, shared by every role)
+`sdlc-grilling` (interview in rounds), `sdlc-domain-modeling` (`GLOSSARY.md`, ADRs), `sdlc-codebase-design` (deep
+modules, seams), `sdlc-tdd` (red-green at agreed test seams), `sdlc-debugging` (feedback-loop-first diagnosis),
+`sdlc-research` (cited primary sources), `sdlc-prototype` (throwaway answer to one design question). Skills reach
+each other only by calling the Skill tool with a model-invoked skill; `sdlc.py validate --bundled` enforces it.
+
 Task contracts live in exactly one place, chosen during setup (`tracker` in the project config): local files, GitHub,
 GitLab, Jira (through `orca jira`) or a workflow the user describes. Follow `references/trackers/<provider>.md` for
-every task operation; `sdlc.py task body` renders the issue body that embeds the contract.
+every task operation; `sdlc.py task body` renders the issue body that embeds the contract. Write contracts by
+`references/TASK-AUTHORING.md`: tracer-bullet slices, genuine blocking edges, observable criteria, `test_seams` for
+implementation roles.
 
 ## Engine commands (used by the workflow skills, CI and power users)
-`version`, `where`, `install`, `init`, `validate [--task]`, `doctor`, `task new`, `task body`, `spec --task`,
-`activate [--brief] [--smoke] [--stdout]`, `smoke spec|check`, `upgrade`; `--help` on each.
-`init` infers commands only from repository evidence and prints each `DETECTED` source; `validate` enforces the
-schema and invariants; `activate` renders the Orchestrator prompt.
+`version`, `where`, `install`, `init`, `validate [--task ...]`, `doctor`, `task new`, `task body`, `spec --task`,
+`scope --task|--allowed [--base]`, `activate [--brief] [--smoke] [--stdout]`, `smoke spec|check`, `upgrade`;
+`--help` on each. `init` infers commands only from repository evidence and prints each `DETECTED` source; `validate`
+enforces the schema and invariants (several `--task` also check the dependency graph); `scope` fails when a changed
+path leaves the task's `allowed_paths` or touches a protected path; `activate` renders the Orchestrator prompt.
 
 ## Acting as Orchestrator
 Follow the rendered activation prompt. In short: read `references/OPERATING-CONTRACT.md`, `agents/orchestrator.md`,
@@ -51,9 +68,9 @@ Details: `references/ORCHESTRATOR-ACTIVATION.md`, `references/ROLE-ASSIGNMENT.md
 
 ## Acting as an SDLC worker
 Your task spec is self-contained. Read the role file `agents/<role>.md`, the referenced workflow, policies and
-`references/HANDOFF.md`, plus the project files listed in the spec. Run the project's configured commands and report
-real exit codes. Role skills: `sdlc-requirements-analysis`, `sdlc-system-design`, `sdlc-implementation`,
-`sdlc-code-review`, `sdlc-testing`.
+`references/HANDOFF.md`, plus the project files listed in the spec. Work on that one task only, run the project's
+configured commands and the spec's scope check, and report real exit codes. Role skills: `sdlc-requirements-analysis`,
+`sdlc-system-design`, `sdlc-implementation`, `sdlc-code-review`, `sdlc-testing`; they load the discipline skills.
 
 ## Non-negotiables
 - Precedence: human > repository/CI evidence > core policies > project config (can only tighten) > task spec > role/skill.

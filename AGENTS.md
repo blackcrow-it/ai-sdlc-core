@@ -32,10 +32,13 @@ project-specific configuration; roles, workflows, policies, templates and schema
   `~/.claude/skills`, `~/.agents/skills`).
 - Precedence: human instructions > repository/CI evidence > core policies > `.ai-sdlc/project.json` (may only tighten core
   policies, never grants permissions) > task spec > core workflow, role and skill files.
-- Workflow: `/sdlc-brief <idea>` (write `docs/brief.md`), `/sdlc-status` (readiness), `/sdlc-task <goal>` (task contract + spec), `/sdlc-smoke` (prove Orca),
-  `/sdlc-orchestrate <objective>` (act as Orchestrator; stop for `APPROVE-SDLC-PLAN`). Agents run the engine
+- Workflow (`/sdlc-help` maps it): new product `/sdlc-brief` → `/sdlc-orchestrate` (stops for `APPROVE-SDLC-PLAN`);
+  feature `/sdlc-grill` → `/sdlc-spec` → `/sdlc-plan` → `/sdlc-implement <task>` per task; one change `/sdlc-task`;
+  incoming issues `/sdlc-triage`; readiness `/sdlc-status`; after a session `/sdlc-retro`. Agents run the engine
   `sdlc.py` themselves; workers receive self-contained specs rendered by `sdlc.py spec`.
+- Domain language: `GLOSSARY.md` (or `GLOSSARY-MAP.md`) and decisions in `docs/adr/`, created lazily; use their terms.
 - Task contracts live only in the tracker named by `tracker` in `.ai-sdlc/project.json`; the conventions are in core
   `references/trackers/<provider>.md`. Never keep a second copy elsewhere.
-- Before reporting done, run the relevant `commands` from `.ai-sdlc/project.json` and cite real changed paths and exit codes.
+- One task per worker or session. Before reporting done, run the relevant `commands` from `.ai-sdlc/project.json` and
+  `sdlc.py scope --task <contract>`, and cite real changed paths and exit codes.
 <!-- ai-sdlc-core:end -->

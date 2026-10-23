@@ -6,10 +6,12 @@ from pathlib import Path
 
 from .core import Core
 from .environment import install_skills, install_targets, run_doctor, upgrade_project
-from .project import APPROVER_ROLES, COMMAND_KEYS, init_project, load_config, refresh_blocks, validate_config, write_text
+from .project import (APPROVER_ROLES, COMMAND_KEYS, TRIAGE_ROLES, changed_paths, init_project, load_config,
+                      refresh_blocks, validate_config, write_text)
 from .render import (build_activation_prompt, build_smoke_prompt, build_smoke_spec, build_task_body,
                      build_worker_spec, check_smoke_outputs, smoke_paths)
-from .validate import effective_forbidden_actions, load_task, validate_core, validate_task
+from .validate import (effective_forbidden_actions, effective_protected_paths, implementation_roles, load_task,
+                       scope_violations, validate_core, validate_task, validate_task_graph)
 
 
 class _Abort(Exception):
@@ -31,11 +33,13 @@ def _write(project_dir, rel_or_path, content, stdout=False):
     print(f'WROTE {shown} ({len(content)} characters). Not dispatched to Orca.')
 
 
-def _valid_config_or_exit(core, project_dir):
+def _valid_config_or_exit(core, project_dir, rendering_to_stdout=False):
+    """Load and validate the project config. When the command renders a document to stdout (which agents
+    redirect into issue bodies or prompts), warnings go to stderr so they never end up inside it."""
     config = load_config(project_dir, core)
     errors, warnings = validate_config(config, core, project_dir)
     for warning in warnings:
-        print(f'WARN: {warning}')
+        print(f'WARN: {warning}', file=sys.stderr if rendering_to_stdout else sys.stdout)
     if errors:
         print('INVALID PROJECT CONFIG:')
         for error in errors:
@@ -92,6 +96,14 @@ def cmd_init(core, args):
             return 1
         approvers[role] = name.strip()
     opts['approvers'] = approvers
+    labels = {}
+    for item in args.triage_label or []:
+        role, _, label = item.partition('=')
+        if role not in TRIAGE_ROLES or not label.strip():
+            print(f'FAIL: --triage-label expects ROLE=LABEL with ROLE in {", ".join(TRIAGE_ROLES)}; got {item!r}')
+            return 1
+        labels[role] = label.strip()
+    opts['triage_labels'] = labels
     try:
         config, actions, evidence = init_project(core, d, opts, force=args.force, dry_run=args.dry_run,
                                                  write_agent_files=not args.no_agent_files)
@@ -131,8 +143,13 @@ def cmd_validate(core, args):
         else:
             errors, warnings = validate_config(config, core, d)
             problems += errors
-    for task_path in args.task:
-        problems += [f'{task_path}: {e}' for e in validate_task(load_task(task_path), core, config)]
+    tasks = [load_task(task_path) for task_path in args.task]
+    for task_path, task in zip(args.task, tasks):
+        problems += [f'{task_path}: {e}' for e in validate_task(task, core, config)]
+    if len(tasks) > 1:
+        graph_errors, graph_warnings = validate_task_graph(tasks)
+        problems += graph_errors
+        warnings = warnings + graph_warnings
     for warning in warnings:
         print(f'WARN: {warning}')
     if problems:
@@ -145,6 +162,8 @@ def cmd_validate(core, args):
         print(f'OK: project {config["project"]["id"]} config valid against core {core.version}.')
     for task_path in args.task:
         print(f'OK: task contract {task_path}')
+    if len(tasks) > 1:
+        print(f'OK: task graph of {len(tasks)} contracts (unique IDs, no dependency cycles)')
     return 0
 
 
@@ -182,13 +201,16 @@ def cmd_task_new(core, args):
         'scope': {'allowed_paths': ['REPLACE_WITH_NARROW_PATH/**'],
                   'forbidden_actions': effective_forbidden_actions(core, config)},
         'acceptance_criteria': ['REPLACE with observable behavior and verification'],
+        **({'test_seams': ['REPLACE with the public interface the tests exercise']}
+           if args.role in implementation_roles(core) else {}),
         'required_checks': cmds['lint'] + cmds['typecheck'] + cmds['test'],
         'deliverables': ['REPLACE_WITH_REAL_OUTPUT'],
         'max_attempts': config['sdlc']['default_max_attempts'], 'human_approval_required': True,
         'input_artifacts': [], 'orca_run_id': None, 'evidence_paths': []}
     # Local tracker: contracts live in tasks_dir. Remote trackers: the issue is the record, so the
     # draft goes to the ignored runs dir until it is published per references/trackers/<provider>.md.
-    draft_dir = core.layout('tasks_dir') if config['tracker']['provider'] == 'local'         else f'{core.layout("runs_dir")}/tasks'
+    draft_dir = (core.layout('tasks_dir') if config['tracker']['provider'] == 'local'
+                 else f'{core.layout("runs_dir")}/tasks')
     out = Path(args.output) if args.output else d / draft_dir / f'{args.id}.json'
     out = out if out.is_absolute() else d / out
     if out.exists():
@@ -206,7 +228,7 @@ def cmd_task_body(core, args):
         print('FAIL: task body needs --task <file>')
         return 1
     d = _project_dir(args)
-    config = _valid_config_or_exit(core, d)
+    config = _valid_config_or_exit(core, d, rendering_to_stdout=not args.output)
     task = load_task(args.task)
     errors = validate_task(task, core, config)
     if errors:
@@ -218,9 +240,42 @@ def cmd_task_body(core, args):
     return 0
 
 
-def cmd_spec(core, args):
+def cmd_scope(core, args):
+    """Deterministic scope check: every changed path must match an allowed path and no protected path."""
     d = _project_dir(args)
     config = _valid_config_or_exit(core, d)
+    allowed = list(args.allowed)
+    if args.task:
+        task = load_task(args.task)
+        errors = validate_task(task, core, config)
+        if errors:
+            print('INVALID TASK CONTRACT:')
+            for error in errors:
+                print(f' - {error}')
+            return 1
+        allowed += task['scope']['allowed_paths']
+    if not allowed:
+        print('FAIL: scope needs --task <contract> or at least one --allowed PATTERN')
+        return 1
+    try:
+        base, paths = changed_paths(d, args.base, config['project']['default_branch'])
+    except ValueError as exc:
+        print(f'FAIL: {exc}')
+        return 1
+    problems = scope_violations(paths, allowed, effective_protected_paths(core, config))
+    print(f'SCOPE base {base[:12]}: {len(paths)} changed path(s); allowed: {", ".join(allowed)}')
+    for problem in problems:
+        print(f'VIOLATION {problem}')
+    if problems:
+        print(f'Result: FAIL - {len(problems)} path(s) outside the task scope.')
+        return 1
+    print('Result: OK - every changed path is inside allowed_paths and outside protected paths.')
+    return 0
+
+
+def cmd_spec(core, args):
+    d = _project_dir(args)
+    config = _valid_config_or_exit(core, d, rendering_to_stdout=args.stdout)
     task = load_task(args.task)
     errors = validate_task(task, core, config)
     if errors:
@@ -330,6 +385,8 @@ def build_parser():
                    help='where task contracts live (default: local)')
     p.add_argument('--tracker-project', help='owner/repo, group/project or Jira project key')
     p.add_argument('--tracker-notes', help='workflow description (required for --tracker other)')
+    p.add_argument('--triage-label', action='append', metavar='ROLE=LABEL',
+                   help=f'triage label override, ROLE in {", ".join(TRIAGE_ROLES)} (repeatable)')
     p.add_argument('--approver', action='append', metavar='ROLE=NAME',
                    help=f'human approver, ROLE in {", ".join(APPROVER_ROLES)} (repeatable)')
     for key in COMMAND_KEYS:
@@ -342,7 +399,8 @@ def build_parser():
     p = command('validate', cmd_validate, 'validate core integrity, the project config and task contracts')
     p.add_argument('--core-only', action='store_true', help='skip the project config')
     p.add_argument('--bundled', action='store_true', help='also verify sibling bundled skills (source repo)')
-    p.add_argument('--task', action='append', default=[], help='task contract JSON (repeatable)')
+    p.add_argument('--task', action='append', default=[],
+                   help='task contract file or issue body (repeatable; several also get the dependency-graph check)')
 
     p = command('doctor', cmd_doctor, 'read-only readiness checks: Python, Git, config, skills, Orca')
     p.add_argument('--offline', action='store_true', help='skip Orca CLI checks')
@@ -357,6 +415,12 @@ def build_parser():
     p.add_argument('--task', help='contract file (body)')
     p.add_argument('--reviewer')
     p.add_argument('--output')
+
+    p = command('scope', cmd_scope, 'check that changed paths stay inside the task allowed_paths and outside '
+                'protected paths (committed, staged, unstaged and untracked changes)')
+    p.add_argument('--task', help='task contract file or issue body')
+    p.add_argument('--allowed', action='append', default=[], metavar='PATTERN', help='allowed path glob (repeatable)')
+    p.add_argument('--base', help='base commit (default: merge-base with the project default branch)')
 
     p = command('spec', cmd_spec, 'render a self-contained Orca worker task spec from a task contract')
     p.add_argument('--task', required=True)

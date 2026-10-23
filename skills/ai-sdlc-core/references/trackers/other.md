@@ -14,4 +14,6 @@ Rules that hold for every tracker:
 - Operations to map: next ID, create, read, list, change contract, set status (`draft`, `ready`, `in_progress`,
   `blocked`, `submitted_for_review`, `changes_requested`, `accepted`, `cancelled`), record evidence, dependencies,
   link to the Orca worktree (`orca reference add <url> --worktree ...`), close.
+- When a task closes and `input_artifacts` names a triaged source record whose tasks are all closed, comment the
+  outcome on that record and close it too.
 - Never put secrets, credentials or private data in the tracker.

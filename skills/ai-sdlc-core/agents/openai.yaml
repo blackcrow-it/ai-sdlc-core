@@ -1,0 +1,3 @@
+interface:
+  display_name: "AI SDLC Core"
+  short_description: "Roles, workflows, policies and the sdlc.py engine"

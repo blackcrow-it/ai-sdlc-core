@@ -1,0 +1,3 @@
+interface:
+  display_name: "SDLC Codebase Design"
+  short_description: "Deep modules, seams and adapters vocabulary"

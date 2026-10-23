@@ -46,7 +46,9 @@ orca orchestration task-create --task-title "<title>" --spec "<complete rendered
 orca orchestration worker-start --task <actualTaskId> --worktree <placement> --agent claude --json
 orca orchestration check --wait --types "worker_done,escalation,question" --timeout-ms 900000 --json
 ```
-- Spec của từng task do `sdlc.py spec --task .ai-sdlc/tasks/<TASK>.json` sinh ra; dùng **nội dung đầy đủ**, không dùng đường dẫn.
+- Spec của từng task do `sdlc.py spec --task <contract hoặc issue body>` sinh ra; dùng **nội dung đầy đủ**, không dùng đường dẫn.
+- Nếu tracker đã có task cho mục tiêu (ví dụ từ `/sdlc-plan`), Orchestrator dùng lại chúng làm DAG thay vì lập lại.
+- Trước khi chấp nhận `worker_done`: chạy `sdlc.py scope --task <contract> --base <base>` trong worktree của worker và giao review cho một worker khác (skill `sdlc-code-review`).
 - Code workers dùng worktree riêng (guide Orca 1.4.230: `--worktree new-child --name <name> --setup run`);
   smoke test tài liệu dùng `--worktree current`. Task phụ thuộc tạo bằng `task-create --spec ... --deps <json_array>`.
 - `worker_done` chỉ là tín hiệu ứng viên hoàn thành; Orchestrator phải tự kiểm tra artifact, diff và kết quả lệnh thật.

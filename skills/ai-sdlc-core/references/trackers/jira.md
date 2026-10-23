@@ -19,6 +19,6 @@ connected site (`orca jira connection --json` shows `"connected": true`). Add `-
 | Record evidence | `orca jira comment add <issue> --body-file <HANDOFF report>` |
 | Dependencies | `dependencies` lists task IDs; mention the blocking issue keys in a comment when helpful |
 | Link to Orca | After `worker-start`, `orca reference add <ISSUE-KEY> --worktree id:<worktree id from the receipt>` |
-| Close | Transition to Done (`accepted`) or the won't-do state (`cancelled`) after commenting the gate decision |
+| Close | Transition to Done (`accepted`) or the won't-do state (`cancelled`) after commenting the gate decision. If `input_artifacts` names a triaged source issue whose tasks are now all closed, comment the outcome there and transition it too |
 
 Never put secrets, credentials or private data in issues.

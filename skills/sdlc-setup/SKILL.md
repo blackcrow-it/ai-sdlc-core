@@ -25,7 +25,7 @@ From this, prepare a recommended answer for every question in step 3. Facts are 
 
 ## 3. Interview in rounds
 
-Ask the open decisions as numbered questions, each with your recommended answer, then wait. Ask follow-ups in later rounds only when an answer opens new questions. Cover:
+Call the Skill tool with "sdlc-grilling" and ask the open decisions in its rounds: numbered questions, each with your recommended answer, then wait. Skip any question your exploration already settled beyond doubt and say so. Ask follow-ups in later rounds only when an answer opens new questions. Cover:
 
 1. Project id and name, description, reply language (default Vietnamese).
 2. Languages, frameworks, package manager, runtimes.
@@ -37,10 +37,13 @@ Ask the open decisions as numbered questions, each with your recommended answer,
 8. Human approvers: product_owner, tech_lead, security_owner, release_owner. Use real names only; an empty role keeps its gate blocked.
 9. Worker agent (`claude` or `codex`) and any phases or roles to disable (default: all enabled).
 10. **Issue tracker:** the single place task contracts will live. Options are `local` (JSON files in `.ai-sdlc/tasks/`, committed), `github` (`gh`), `gitlab` (`glab`), `jira` (through `orca jira`; needs the project key), or `other` (the user describes the workflow in one paragraph). Recommend the tracker named in the `tracker suggestion` line from `init --dry-run` when there is one; otherwise recommend `local`. Tasks are never mirrored to a second place.
+11. **Triage labels** (only for a remote tracker): "Keep the default triage labels?" (recommended: yes). The defaults equal the role names: `bug`, `enhancement`, `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. Only when the tracker already uses other strings, collect the overrides as `--triage-label ROLE=LABEL` so /sdlc-triage applies the existing labels instead of creating duplicates.
+
+Domain docs need no question: the skills use a root `GLOSSARY.md` and `docs/adr/` (or a `GLOSSARY-MAP.md` in a multi-context repository) and create them lazily.
 
 ## 4. Write and validate
 
-Run `SDLC init` with the agreed answers: `--name --id --description --reply-language --language --framework --package-manager --runtime --architecture-style --architecture-summary --architecture-doc --install-cmd --build-cmd --lint-cmd --typecheck-cmd --test-cmd --e2e-cmd --security-cmd --rule --rule-file --in-scope --out-of-scope --allowed-path --protected-path --approver ROLE=NAME --agent --phase --role --tracker --tracker-project --tracker-notes`. Repeat a flag for several values; quote every value.
+Run `SDLC init` with the agreed answers: `--name --id --description --reply-language --language --framework --package-manager --runtime --architecture-style --architecture-summary --architecture-doc --install-cmd --build-cmd --lint-cmd --typecheck-cmd --test-cmd --e2e-cmd --security-cmd --rule --rule-file --in-scope --out-of-scope --allowed-path --protected-path --approver ROLE=NAME --agent --phase --role --tracker --tracker-project --tracker-notes --triage-label ROLE=LABEL`. Repeat a flag for several values; quote every value.
 
 Run `SDLC validate`. Fix each error by re-running init with `--force` and corrected flags. Do not hand-edit around the validator.
 
@@ -50,4 +53,6 @@ Show the user a short summary of the config plus `git diff --stat`. On their app
 
 ## 6. Hand over
 
-Run `SDLC doctor` and report every FAIL and WARN with its fix, including the `tracker` line (CLI installed and logged in). Suggest /sdlc-smoke to prove Orca orchestration end to end, then `/sdlc-orchestrate docs/brief.md`. If there is no brief yet, suggest /sdlc-brief first.
+Run `SDLC doctor` and report every FAIL and WARN with its fix, including the `tracker` line (CLI installed and logged in). Suggest /sdlc-smoke to prove Orca orchestration end to end, then `/sdlc-orchestrate docs/brief.md`. If there is no brief yet, suggest /sdlc-brief first. For feature work in an existing product, the flow is /sdlc-grill → /sdlc-spec → /sdlc-plan → /sdlc-implement; /sdlc-help maps every flow.
+
+When the tracker is GitHub or GitLab and the user kept or set triage labels, offer to create the missing labels (`gh label create` / `glab label create`); creating labels is visible to others, so only on their go-ahead.

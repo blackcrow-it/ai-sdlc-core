@@ -23,6 +23,9 @@
     "Invalid credentials are rejected without leaking secret data",
     "Required authorization checks are enforced"
   ],
+  "test_seams": [
+    "POST /auth/login HTTP endpoint (catches credential, session and error-shape regressions; misses token internals)"
+  ],
   "required_checks": [
     "lint",
     "unit_tests",

@@ -1,28 +1,33 @@
 ---
 name: sdlc-requirements-analysis
-description: Analyze feature and business requirements into traceable PRD/SRS, user stories and measurable acceptance criteria. Use for discovery, requirement clarification, backlog grooming and documentation.
+description: Turn a brief, spec, stakeholder input or an existing SRS into traceable PRD/SRS documents, user stories and measurable acceptance criteria, with verified facts separated from assumptions and open questions routed to their owner. Use for discovery, requirements, UX specs, backlog grooming, release planning and documentation tasks.
 metadata:
   package: ai-sdlc-core
   version: "0.1.0"
 ---
 
-# Requirements Analysis
+# Requirements analysis
 
-**When to use:** Analyze feature and business requirements into traceable PRD/SRS, user stories and measurable acceptance criteria. Use for discovery, requirement clarification, backlog grooming and documentation.
-
-## Inputs
-Inputs: stakeholder brief, project constraints, existing features and user roles.
+Primary skill of the product, analysis, UX, planning and documentation roles. Inputs: the task contract or the user's request, the brief or spec it points at (`input_artifacts`), `.ai-sdlc/project.json` (`scope`, approvers) and the existing product.
 
 ## Procedure
-1. Read stakeholder brief and identify verified facts vs assumptions.
-2. Write user journeys, rules, edge cases, roles, constraints and non-functional targets.
-3. Produce acceptance criteria using Given/When/Then or another unambiguous form.
-4. Map each requirement to an artifact/test ID; ask for human resolution of ambiguous rules.
+
+1. **Read the sources** and the project's domain language: `GLOSSARY.md` (or `GLOSSARY-MAP.md`) and the ADRs in `docs/adr/`. Use glossary terms throughout; a needed concept the glossary lacks is a finding.
+2. **Separate verified facts from assumptions.** A fact cites its source (brief section, existing code path, stakeholder message). Everything else is an assumption, listed as such.
+3. **Write the requirements** from the template the phase names (`templates/PRD.md`, `templates/SRS.md`, `templates/UI-SPEC.md`):
+   - user roles and journeys; business rules; edge cases and error behaviour; constraints; non-functional targets with numbers only when a source gives them;
+   - **user stories** as a long numbered list, `As a <actor>, I want <capability>, so that <benefit>`, covering every aspect of the scope;
+   - **acceptance criteria** that are observable and independently checkable, Given/When/Then where it helps.
+4. **Trace everything.** Give each requirement an ID and map it to its source and to the acceptance criteria (and later the tests) that cover it. A requirement without a source is an assumption; an acceptance criterion without a requirement is scope creep.
+5. **Resolve ambiguity with the owner, never by guessing.** With the user in the session, call the Skill tool with "sdlc-grilling" and ask in rounds. In an Orca worker, send the questions to the Orchestrator or list them as open questions with their owner (usually `product_owner`) and what they block. When a business rule only becomes clear by trying it, propose a prototype (the `sdlc-prototype` skill) instead of prose.
+6. **Keep the domain model current.** When a term is resolved or an overloaded word is split, call the Skill tool with "sdlc-domain-modeling" and update `GLOSSARY.md`, if it is inside the task's `allowed_paths` (otherwise propose the entry in the handoff).
 
 ## Output
-Deliver PRD/SRS or task-ready stories, open questions and a coverage matrix.
 
-## Safety and quality
-- Never invent stakeholder approval or domain/legal rules.
-- Apply core `policies/permissions.md` and `policies/quality-gates.md` from the `ai-sdlc-core` skill (locate with `sdlc.py where`), plus project rules in `.ai-sdlc/project.json` (commands, coding rules, protected paths).
-- Record concrete evidence, issues and handoff per core `references/HANDOFF.md`.
+The documents at the deliverable paths, an open-questions table (question, owner, blocks), an assumptions list and a coverage matrix (requirement → source → acceptance criteria). Hand off per core `references/HANDOFF.md`.
+
+## Rules
+
+- Never invent stakeholder approval, legal or compliance duties, numbers, integrations or domain rules.
+- Stay inside `scope.in_scope`; anything in `scope.out_of_scope` or `.out-of-scope/` is flagged, not specified.
+- Apply core `policies/permissions.md`, `policies/approval-rules.md` and `policies/quality-gates.md` of the `ai-sdlc-core` skill (locate it with `sdlc.py where`) and the project rules in `.ai-sdlc/project.json`.

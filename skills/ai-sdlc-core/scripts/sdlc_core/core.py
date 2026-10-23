@@ -36,8 +36,8 @@ def compat_error(required, installed):
     return None
 
 
-def read_frontmatter(skill_md):
-    """Return (name, description, version) from a SKILL.md frontmatter, or None if absent."""
+def read_skill_meta(skill_md):
+    """Return {name, description, version, user_invoked} from a SKILL.md frontmatter, or None if absent."""
     match = FRONTMATTER_RE.match(Path(skill_md).read_text(encoding='utf-8'))
     if not match:
         return None
@@ -45,8 +45,15 @@ def read_frontmatter(skill_md):
     def field(pattern):
         found = re.search(pattern, block, re.M)
         return found.group(1).strip() if found else None
-    return (field(r'^name:\s*(\S+)\s*$'), field(r'^description:\s*(.+)$'),
-            field(r'^\s+version:\s*"?([0-9.]+)"?\s*$'))
+    return {'name': field(r'^name:\s*(\S+)\s*$'), 'description': field(r'^description:\s*(.+)$'),
+            'version': field(r'^\s+version:\s*"?([0-9.]+)"?\s*$'),
+            'user_invoked': field(r'^disable-model-invocation:\s*(\S+)\s*$') == 'true'}
+
+
+def read_frontmatter(skill_md):
+    """Return (name, description, version) from a SKILL.md frontmatter, or None if absent."""
+    meta = read_skill_meta(skill_md)
+    return (meta['name'], meta['description'], meta['version']) if meta else None
 
 
 class Core:

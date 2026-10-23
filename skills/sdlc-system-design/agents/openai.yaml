@@ -1,0 +1,3 @@
+interface:
+  display_name: "SDLC System Design"
+  short_description: "Architecture, interfaces, ADRs and test seams"

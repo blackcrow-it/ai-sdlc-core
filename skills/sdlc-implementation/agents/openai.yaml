@@ -1,0 +1,3 @@
+interface:
+  display_name: "SDLC Implementation"
+  short_description: "Implement exactly one task contract test-first"

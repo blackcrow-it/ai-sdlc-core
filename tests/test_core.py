@@ -1,11 +1,15 @@
 import copy
+import shutil
+import tempfile
 import unittest
+from pathlib import Path
 
 from helpers import CORE, CORE_ROOT, ROOT, example_task, load
 from sdlc_core import schema
-from sdlc_core.core import compat_error, parse_version
+from sdlc_core.core import Core, compat_error, parse_version
 from sdlc_core.project import validate_config
-from sdlc_core.validate import paths_overlap, validate_core, validate_task
+from sdlc_core.validate import (path_matches, paths_overlap, scope_violations, validate_core, validate_invocation,
+                                validate_task, validate_task_graph)
 
 
 class CorePackageTests(unittest.TestCase):
@@ -23,10 +27,12 @@ class CorePackageTests(unittest.TestCase):
             self.assertTrue(skill.startswith(('sdlc-', 'orca-native:')), skill)
 
     def test_workflow_skills_drive_the_engine(self):
+        engine_free = {'sdlc-grill'}  # pure conversation: no engine call needed
         for name in CORE.manifest['workflow_skills']:
             skill_dir = CORE_ROOT.parent / name
             text = (skill_dir / 'SKILL.md').read_text(encoding='utf-8')
-            self.assertIn('ai-sdlc-core', text, name)
+            if name not in engine_free:
+                self.assertIn('ai-sdlc-core', text, name)
             self.assertTrue((skill_dir / 'agents' / 'openai.yaml').is_file(), name)
             # Mutating workflows run only when the user invokes them.
             if name != 'sdlc-status':
@@ -34,8 +40,15 @@ class CorePackageTests(unittest.TestCase):
                 self.assertIn('allow_implicit_invocation: false',
                               (skill_dir / 'agents' / 'openai.yaml').read_text(encoding='utf-8'), name)
         for name, keyword in (('sdlc-orchestrate', 'APPROVE-SDLC-PLAN'), ('sdlc-smoke', 'START-ORCA-SMOKE-TEST'),
-                              ('sdlc-brief', 'templates/project-brief.md')):
+                              ('sdlc-brief', 'templates/project-brief.md'), ('sdlc-spec', 'templates/feature-spec.md'),
+                              ('sdlc-plan', 'TASK-AUTHORING.md'), ('sdlc-task', 'TASK-AUTHORING.md'),
+                              ('sdlc-implement', 'SDLC scope'), ('sdlc-triage', 'TASK-AUTHORING.md')):
             self.assertIn(keyword, (CORE_ROOT.parent / name / 'SKILL.md').read_text(encoding='utf-8'))
+
+    def test_every_skill_is_reachable_and_versioned(self):
+        for name in CORE.manifest['bundled_skills']:
+            self.assertTrue((CORE_ROOT.parent / name / 'agents' / 'openai.yaml').is_file(), name)
+        self.assertEqual(validate_invocation(CORE), [])
 
     def test_brief_template_matches_the_smoke_brief_structure(self):
         template = (CORE_ROOT / 'templates' / 'project-brief.md').read_text(encoding='utf-8')
@@ -48,6 +61,40 @@ class CorePackageTests(unittest.TestCase):
     def test_no_root_level_copies_of_core_content(self):
         for legacy in ('agents', 'workflows', 'policies', 'templates', 'schemas', 'scripts'):
             self.assertFalse((ROOT / legacy).exists(), f'{legacy}/ must live inside skills/ai-sdlc-core')
+
+
+class InvocationRuleTests(unittest.TestCase):
+    """The validator catches skills that call unreachable skills, disagree between harnesses or go unrouted."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.skills = Path(self._tmp.name) / 'skills'
+        shutil.copytree(CORE_ROOT.parent, self.skills, ignore=shutil.ignore_patterns('__pycache__'))
+        self.core = Core(self.skills / 'ai-sdlc-core')
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def edit(self, rel, change):
+        path = self.skills / rel
+        path.write_text(change(path.read_text(encoding='utf-8')), encoding='utf-8')
+
+    def test_copy_is_clean(self):
+        self.assertEqual(validate_invocation(self.core), [])
+
+    def test_calling_a_user_invoked_skill_is_rejected(self):
+        self.edit('sdlc-tdd/SKILL.md', lambda text: text + '\nWhen done, call the Skill tool with "sdlc-implement".\n')
+        errors = validate_invocation(self.core)
+        self.assertTrue(any('sdlc-tdd/SKILL.md: calls the Skill tool with "sdlc-implement"' in e for e in errors), errors)
+
+    def test_harness_policies_must_agree(self):
+        self.edit('sdlc-plan/agents/openai.yaml', lambda text: 'interface:\n  display_name: "x"\n')
+        self.assertIn('sdlc-plan: disable-model-invocation and agents/openai.yaml policy disagree',
+                      validate_invocation(self.core))
+
+    def test_router_must_name_every_skill(self):
+        self.edit('sdlc-help/SKILL.md', lambda text: text.replace('`/sdlc-retro`', 'retro'))
+        self.assertIn('sdlc-help does not route to /sdlc-retro', validate_invocation(self.core))
 
 
 class VersionTests(unittest.TestCase):
@@ -123,6 +170,35 @@ class TaskContractTests(unittest.TestCase):
         self.assertTrue(any('.github/workflows/ci.yml overlaps' in e for e in errors))
         self.assertTrue(any('repo-relative: ../other/**' in e for e in errors))
         self.assertTrue(any('entry ** overlaps' in e for e in errors))
+
+    def test_implementation_tasks_need_test_seams(self):
+        task = example_task()
+        del task['test_seams']
+        self.assertTrue(any('test_seams is required' in e for e in validate_task(task, CORE)))
+        task.update(owner_agent='business-analyst', reviewer_agent='product-manager')
+        self.assertEqual(validate_task(task, CORE), [])
+
+    def test_task_graph(self):
+        def task(task_id, *deps):
+            return {'task_id': task_id, 'dependencies': list(deps)}
+        self.assertEqual(validate_task_graph([task('TASK-001'), task('TASK-002', 'TASK-001')]), ([], []))
+        errors, _ = validate_task_graph([task('TASK-001', 'TASK-003'), task('TASK-002', 'TASK-001'),
+                                         task('TASK-003', 'TASK-002')])
+        self.assertEqual(errors, ['Dependency cycle: TASK-001 -> TASK-003 -> TASK-002 -> TASK-001'])
+        errors, warnings = validate_task_graph([task('TASK-001'), task('TASK-001', 'TASK-000')])
+        self.assertIn('Duplicate task_id TASK-001', errors)
+        self.assertTrue(warnings and 'TASK-000' in warnings[0])
+
+    def test_scope_matching(self):
+        self.assertTrue(path_matches('src/orders/a/b.ts', 'src/orders/**'))
+        self.assertTrue(path_matches('key.pem', '**/*.pem'))
+        self.assertTrue(path_matches('a/secrets/x', '**/secrets/**'))
+        self.assertTrue(path_matches('.env.local', '.env.*'))
+        self.assertFalse(path_matches('src/ordersx.ts', 'src/orders/**'))
+        protected = CORE.manifest['default_protected_paths']
+        self.assertEqual(scope_violations(['src/orders/a.ts'], ['src/orders/**'], protected), [])
+        self.assertEqual(scope_violations(['src/orders/x.pem', 'README.md'], ['src/orders/**'], protected),
+                         ['src/orders/x.pem: protected (**/*.pem)', 'README.md: outside allowed_paths'])
 
     def test_path_overlap_rules(self):
         self.assertTrue(paths_overlap('src/**', 'src/legacy/**'))

@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Grill"
+  short_description: "Sharpen a plan by interview; update glossary and ADRs"
+policy:
+  allow_implicit_invocation: false

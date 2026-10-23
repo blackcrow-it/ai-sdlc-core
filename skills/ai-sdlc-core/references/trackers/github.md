@@ -17,6 +17,6 @@ issue is the only copy: nothing is kept in `.ai-sdlc/tasks/`. Use the `gh` CLI i
 | Record evidence | `gh issue comment <n> --body-file <file>` with Run/Task/Dispatch IDs, commands, exit codes, changed paths (HANDOFF format) |
 | Dependencies | `dependencies` lists task IDs; also add `Blocked by: #<n>` at the top of the body text above the summary when helpful |
 | Link to Orca | After `worker-start`, `orca reference add <issue-url> --worktree id:<worktree id from the receipt>` |
-| Close | `accepted`: `gh issue close <n> --reason completed --comment "<gate decision>"`; `cancelled`: `--reason "not planned"` |
+| Close | `accepted`: `gh issue close <n> --reason completed --comment "<gate decision>"`; `cancelled`: `--reason "not planned"`. If `input_artifacts` names a triaged source issue whose tasks are now all closed, comment the outcome there and close it too |
 
 Never put secrets, credentials or private data in issues: they are visible to everyone with repository access.

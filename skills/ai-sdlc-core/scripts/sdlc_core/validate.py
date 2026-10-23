@@ -5,10 +5,10 @@ from fnmatch import fnmatchcase as fnmatch
 from pathlib import Path
 
 from . import schema
-from .core import read_frontmatter
+from .core import read_frontmatter, read_skill_meta
 
 CORE_FILES = [
-    'SKILL.md', 'core.json', 'agents/registry.json', 'workflows/manifest.json',
+    'SKILL.md', 'core.json', 'THIRD_PARTY_NOTICES.md', 'agents/registry.json', 'workflows/manifest.json',
     'policies/permissions.md', 'policies/approval-rules.md', 'policies/quality-gates.md',
     'schemas/task.schema.json', 'schemas/project.schema.json',
     'references/OPERATING-CONTRACT.md', 'references/HANDOFF.md', 'references/ORCA-SETUP.md',
@@ -16,7 +16,8 @@ CORE_FILES = [
     'assets/prompts/orchestrator-activation.md', 'assets/prompts/smoke-orchestrator.md',
     'assets/prompts/worker-spec.md', 'assets/prompts/smoke-ba-spec.md',
     'assets/project/AGENTS.block.md', 'assets/project/CLAUDE.block.md',
-    'assets/smoke/project-brief.md', 'templates/project-brief.md',
+    'assets/smoke/project-brief.md', 'templates/project-brief.md', 'templates/feature-spec.md',
+    'templates/pull-request.md', 'references/TASK-AUTHORING.md',
     *[f'references/trackers/{name}.md' for name in ('local', 'github', 'gitlab', 'jira', 'other')],
 ]
 
@@ -82,6 +83,53 @@ def validate_core(core, check_bundled_siblings=False):
                 errors.append(f'Missing bundled skill: {name}')
             else:
                 errors += _check_skill(skill_md, name, core.version, f'{name}/SKILL.md')
+        errors += validate_invocation(core)
+    return errors
+
+
+SKILL_CALL_RE = re.compile(r'[Cc]all the Skill tool[^.\n]*')
+QUOTED_NAME_RE = re.compile(r'"([a-z0-9][a-z0-9-]*)"')
+ROUTER_SKILL = 'sdlc-help'
+
+
+def validate_invocation(core):
+    """Invocation invariants of the bundled skills (source repository and full installs):
+    - every skill has agents/openai.yaml, user-invoked in both harnesses or in neither;
+    - user-invoked skills are listed as workflow skills;
+    - "call the Skill tool" steps only name model-invoked skills (a user-invoked skill is unreachable);
+    - the router names every skill, so it never sends the user to a skill that does not exist."""
+    manifest, parent, errors = core.manifest, core.root.parent, []
+    names = [n for n in manifest['bundled_skills'] if (parent / n / 'SKILL.md').is_file()]
+    metas = {n: read_skill_meta(parent / n / 'SKILL.md') for n in names}
+    callable_skills = {n for n, meta in metas.items() if meta and not meta['user_invoked']}
+    callable_skills |= set(manifest['orca_native_skills'])
+    for name, meta in metas.items():
+        if meta is None:
+            continue
+        yaml_path = parent / name / 'agents' / 'openai.yaml'
+        if not yaml_path.is_file():
+            errors.append(f'Missing {name}/agents/openai.yaml')
+        else:
+            implicit_off = 'allow_implicit_invocation: false' in yaml_path.read_text(encoding='utf-8')
+            if implicit_off != meta['user_invoked']:
+                errors.append(f'{name}: disable-model-invocation and agents/openai.yaml policy disagree')
+        if meta['user_invoked'] and name not in manifest['workflow_skills']:
+            errors.append(f'{name} is user-invoked but not listed in core.json workflow_skills')
+        for doc in sorted((parent / name).rglob('*.md')):
+            for sentence in SKILL_CALL_RE.findall(doc.read_text(encoding='utf-8')):
+                for target in QUOTED_NAME_RE.findall(sentence):
+                    if target not in callable_skills:
+                        errors.append(f'{doc.relative_to(parent).as_posix()}: calls the Skill tool with "{target}", '
+                                      'which is not a model-invoked bundled or Orca native skill')
+    for name in manifest['workflow_skills']:
+        if name not in manifest['bundled_skills']:
+            errors.append(f'Workflow skill {name} is not a bundled skill')
+    router = parent / ROUTER_SKILL / 'SKILL.md'
+    if router.is_file():
+        text = router.read_text(encoding='utf-8')
+        for name in names:
+            if name not in (manifest['name'], ROUTER_SKILL) and f'/{name}`' not in text:
+                errors.append(f'{ROUTER_SKILL} does not route to /{name}')
     return errors
 
 
@@ -150,6 +198,61 @@ def load_task(path):
     return parse_task(Path(path).read_text(encoding='utf-8'))
 
 
+def implementation_roles(core):
+    """Roles that change product code; their tasks must agree test seams up front."""
+    return {role['id'] for role in core.roles if role['primary_skill'] == 'sdlc-implementation'}
+
+
+def validate_task_graph(tasks):
+    """Checks over a breakdown of contracts -> (errors, warnings): unique IDs, no dependency cycles,
+    and a warning for dependencies outside the set (those must already exist and be accepted)."""
+    errors, warnings, by_id = [], [], {}
+    for task in tasks:
+        task_id = task.get('task_id')
+        if task_id in by_id:
+            errors.append(f'Duplicate task_id {task_id}')
+        by_id[task_id] = task
+    for task_id, task in by_id.items():
+        for dep in task.get('dependencies') or []:
+            if dep not in by_id:
+                warnings.append(f'{task_id} depends on {dep}, which is not in this set (it must exist and be accepted first)')
+    state = {}
+
+    def visit(task_id, path):
+        state[task_id] = 'open'
+        for dep in by_id[task_id].get('dependencies') or []:
+            if dep not in by_id:
+                continue
+            if state.get(dep) == 'open':
+                errors.append('Dependency cycle: ' + ' -> '.join(path[path.index(dep):] + [dep]))
+            elif dep not in state:
+                visit(dep, path + [dep])
+        state[task_id] = 'done'
+
+    for task_id in by_id:
+        if task_id not in state:
+            visit(task_id, [task_id])
+    return errors, warnings
+
+
+def path_matches(path, pattern):
+    """Glob match for repo-relative POSIX paths; `**/x` also matches at the root and `dir/**` the dir."""
+    return (fnmatch(path, pattern) or (pattern.startswith('**/') and fnmatch(path, pattern[3:]))
+            or (pattern.endswith('/**') and path == pattern[:-3]))
+
+
+def scope_violations(changed, allowed, protected):
+    """Changed paths that fall inside a protected path or outside every allowed path."""
+    problems = []
+    for path in changed:
+        guards = [guard for guard in protected if path_matches(path, guard)]
+        if guards:
+            problems.append(f'{path}: protected ({", ".join(guards)})')
+        elif not any(path_matches(path, pattern) for pattern in allowed):
+            problems.append(f'{path}: outside allowed_paths')
+    return problems
+
+
 def validate_task(task, core, config=None):
     """Validate a task contract against the core schema, the role registry and,
     when a project config is given, the project's enabled roles and protected paths."""
@@ -170,6 +273,8 @@ def validate_task(task, core, config=None):
         errors.append('Owner and reviewer cannot be the same role')
     if isinstance(task.get('dependencies'), list) and task.get('task_id') in task['dependencies']:
         errors.append('Task cannot depend on itself')
+    if owner in implementation_roles(core) and not task.get('test_seams'):
+        errors.append(f'test_seams is required when owner_agent is {owner} (see references/TASK-AUTHORING.md)')
     if 'REPLACE' in json.dumps(task, ensure_ascii=False):
         errors.append('Unedited REPLACE placeholder in task contract')
     scope = task.get('scope')

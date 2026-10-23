@@ -4,9 +4,9 @@
 |---|---|---|
 | Requirement | Completeness/traceability checklist, accepted criteria | Confirm uncertain business rules/scope |
 | Design | Interface/ADR review, accessibility checklist | Accept material UX/architecture tradeoff |
-| Planning | Task schema valid, dependencies acyclic, owner/reviewer distinct | Accept priority/budget constraints |
-| Implementation | Build, lint, typecheck, unit/integration checks | None unless risk flagged |
-| Review | Independent findings and required CI green | Code owner review per repository rules |
+| Planning | Task schema valid, graph check (`validate --task ...`) passes, owner/reviewer distinct, `test_seams` set for implementation roles | Accept priority/budget constraints |
+| Implementation | Build, lint, typecheck, unit/integration checks; tests at the agreed seams seen red then green; `sdlc.py scope` passes | None unless risk flagged |
+| Review | Independent Spec, Standards and Risk findings (`sdlc-code-review`) and required CI green | Code owner review per repository rules |
 | Security | Secrets scan, dependency/authorization checks as applicable | Accept residual material risk |
 | Release | Immutable artifact, UAT where needed, staging smoke, rollback | Explicit production release approval |
 

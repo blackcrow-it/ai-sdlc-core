@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Spec"
+  short_description: "Turn the conversation into docs/specs/<feature>.md"
+policy:
+  allow_implicit_invocation: false

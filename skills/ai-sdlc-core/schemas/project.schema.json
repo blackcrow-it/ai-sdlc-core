@@ -122,7 +122,21 @@
       "properties": {
         "provider": {"type": "string", "enum": ["local", "github", "gitlab", "jira", "other"]},
         "project": {"type": ["string", "null"]},
-        "notes": {"type": "string"}
+        "notes": {"type": "string"},
+        "triage_labels": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Overrides of the canonical /sdlc-triage label strings; a missing role uses its own name.",
+          "properties": {
+            "bug": {"type": "string", "minLength": 1},
+            "enhancement": {"type": "string", "minLength": 1},
+            "needs-triage": {"type": "string", "minLength": 1},
+            "needs-info": {"type": "string", "minLength": 1},
+            "ready-for-agent": {"type": "string", "minLength": 1},
+            "ready-for-human": {"type": "string", "minLength": 1},
+            "wontfix": {"type": "string", "minLength": 1}
+          }
+        }
       }
     },
     "orca": {

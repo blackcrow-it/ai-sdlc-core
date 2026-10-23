@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Help"
+  short_description: "Which AI SDLC skill or flow fits your situation"
+policy:
+  allow_implicit_invocation: false

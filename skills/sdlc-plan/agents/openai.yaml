@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Plan"
+  short_description: "Break a spec into tracer-bullet task contracts"
+policy:
+  allow_implicit_invocation: false

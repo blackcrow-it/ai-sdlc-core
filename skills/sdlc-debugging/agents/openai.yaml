@@ -1,0 +1,3 @@
+interface:
+  display_name: "SDLC Debugging"
+  short_description: "Feedback-loop-first diagnosis of hard bugs"

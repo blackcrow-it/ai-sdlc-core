@@ -123,7 +123,9 @@ class RenderTests(ProjectTestCase):
         code, out = self.cli('spec', '--task', str(task_file))
         self.assertEqual(code, 1)
         self.assertIn('REPLACE', out)
-        task.update(acceptance_criteria=['POST /orders returns 201'], deliverables=['src/orders/'])
+        self.assertIn('REPLACE', task['test_seams'][0])
+        task.update(acceptance_criteria=['POST /orders returns 201'], deliverables=['src/orders/'],
+                    test_seams=['POST /orders HTTP endpoint'])
         task['scope']['allowed_paths'] = ['src/orders/**']
         task_file.write_text(json.dumps(task))
         code, out = self.cli('spec', '--task', str(task_file))
@@ -131,7 +133,8 @@ class RenderTests(ProjectTestCase):
         spec = (self.dir / '.ai-sdlc' / 'runs' / 'specs' / 'TASK-001.md').read_text(encoding='utf-8')
         for key in ('TASK-001', 'backend-developer', 'sdlc-implementation', '`npm run test`', 'src/orders/**',
                     'OBSERVABLE ACCEPTANCE', '--outcome succeeded', 'policies/permissions.md',
-                    'modular monolith', '.ai-sdlc/project.json'):
+                    'modular monolith', '.ai-sdlc/project.json', 'POST /orders HTTP endpoint',
+                    'scope --allowed "src/orders/**"', 'GLOSSARY.md', 'exactly one task'):
             self.assertIn(key, spec)
         self.assertIn((CORE_ROOT / 'agents/backend-developer.md').as_posix(), spec)
 
@@ -213,7 +216,9 @@ class TrackerTests(ProjectTestCase):
         task_file.write_text(json.dumps(self.ready_task()))
         code, body = self.cli('task', 'body', '--task', str(task_file))
         self.assertEqual(code, 0, body)
+        self.assertTrue(body.startswith('**Owner:**'), 'config warnings must not leak into the issue body')
         self.assertIn('BEGIN AI-SDLC TASK CONTRACT', body)
+        self.assertIn('### Test seams', body)
         self.assertIn('- [ ] POST /orders returns 201', body)
         # Simulate the tracker: prose around the body, as an issue view would return it.
         fetched = self.dir / 'issue.md'
@@ -264,6 +269,66 @@ class TrackerTests(ProjectTestCase):
         self.cli('activate', '--offline')
         prompt = (self.dir / '.ai-sdlc' / 'runs' / 'orchestrator-activation.md').read_text(encoding='utf-8')
         self.assertIn('references/trackers/local.md', prompt)
+
+
+class TriageLabelTests(ProjectTestCase):
+    def test_triage_label_overrides(self):
+        config = self.init('--tracker', 'github', '--triage-label', 'needs-triage=bug:triage')
+        self.assertEqual(config['tracker']['triage_labels'], {'needs-triage': 'bug:triage'})
+        self.assertEqual(self.cli('validate')[0], 0)
+        self.assertNotIn('triage_labels', self.init('--force')['tracker'])
+        code, out = self.cli('init', *INIT_FLAGS, '--force', '--triage-label', 'urgent=p0')
+        self.assertEqual(code, 1)
+        self.assertIn('--triage-label expects ROLE=LABEL', out)
+
+
+def git(repo, *args):
+    subprocess.run(['git', '-c', 'user.email=t@example.invalid', '-c', 'user.name=t', *args],
+                   cwd=repo, check=True, capture_output=True)
+
+
+class ScopeCheckTests(ProjectTestCase):
+    def setUp(self):
+        super().setUp()
+        git(self.dir, 'init', '-q', '-b', 'main')
+        self.init()
+        (self.dir / 'src' / 'orders').mkdir(parents=True)
+        (self.dir / 'src' / 'orders' / 'api.ts').write_text('export {}\n')
+        git(self.dir, 'add', '-A')
+        git(self.dir, 'commit', '-q', '-m', 'base')
+        git(self.dir, 'checkout', '-q', '-b', 'task/task-001')
+        self.task_file = self.dir / 'task.json'
+        task = example_task()
+        task.update(project_id='PROJECT-SHOP-API')
+        task['scope']['allowed_paths'] = ['src/orders/**']
+        self.task_file.write_text(json.dumps(task))
+        git(self.dir, 'add', 'task.json')
+        git(self.dir, 'commit', '-q', '-m', 'contract')
+
+    def test_changes_inside_scope_pass(self):
+        (self.dir / 'src' / 'orders' / 'api.ts').write_text('export const a = 1\n')
+        (self.dir / 'src' / 'orders' / 'new.ts').write_text('export {}\n')
+        code, out = self.cli('scope', '--allowed', 'src/orders/**', '--allowed', 'task.json')
+        self.assertEqual(code, 0, out)
+        self.assertIn('3 changed path(s)', out)
+
+    def test_out_of_scope_protected_and_untracked_changes_fail(self):
+        (self.dir / 'src' / 'billing.ts').write_text('export {}\n')
+        (self.dir / 'src' / 'orders' / 'secrets').mkdir()
+        (self.dir / 'src' / 'orders' / 'secrets' / 'token.txt').write_text('x\n')  # untracked
+        git(self.dir, 'add', 'src/billing.ts')
+        git(self.dir, 'commit', '-q', '-m', 'oops')
+        code, out = self.cli('scope', '--task', str(self.task_file))
+        self.assertEqual(code, 1, out)
+        self.assertIn('VIOLATION src/billing.ts: outside allowed_paths', out)
+        self.assertIn('VIOLATION task.json: outside allowed_paths', out)
+        self.assertIn('VIOLATION src/orders/secrets/token.txt: protected (**/secrets/**)', out)
+
+    def test_needs_patterns_and_a_resolvable_base(self):
+        self.assertIn('needs --task', self.cli('scope')[1])
+        code, out = self.cli('scope', '--allowed', 'src/**', '--base', 'no-such-ref')
+        self.assertEqual(code, 1)
+        self.assertIn('cannot resolve the base commit', out)
 
 
 class CliProcessTests(unittest.TestCase):

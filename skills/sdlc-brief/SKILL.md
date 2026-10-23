@@ -18,7 +18,7 @@ Write the project brief for the idea the user described. The brief feeds the dis
 
 ## 2. Interview in rounds
 
-Ask only the questions whose prerequisites are settled. Number each question, give your recommended answer, then wait for the user. Typical order:
+Call the Skill tool twice, for "sdlc-grilling" and "sdlc-domain-modeling", and run the interview in their rounds: only questions whose prerequisites are settled, numbered, each with your recommended answer. Domain terms the user settles go into `GLOSSARY.md` as they are resolved. Typical order of the frontier:
 
 1. **Objective and users:** the problem, who has it, the user roles and what each needs to do.
 2. **Scope:** what the MVP must deliver and what is deferred or out of scope.
@@ -36,9 +36,9 @@ Rules:
 
 1. Write `docs/brief.md` from the template, keeping the status `draft`.
 2. Show the user the full brief and apply their corrections.
-3. When the user approves, set the status to `approved by <name> on <YYYY-MM-DD>`, using their own words for the name. Then commit only `docs/brief.md` with the message `Add project brief`. Orca worktrees only see committed files.
+3. When the user approves, set the status to `approved by <name> on <YYYY-MM-DD>`, using their own words for the name. Then commit only `docs/brief.md` (and `GLOSSARY.md` if the interview created or changed it) with the message `Add project brief`. Orca worktrees only see committed files.
 
 ## 4. Hand over
 
 - No `.ai-sdlc/project.json` yet → recommend /sdlc-setup. Its interview reuses the brief's scope, constraints and owner.
-- Otherwise → recommend `/sdlc-orchestrate docs/brief.md`.
+- Otherwise → recommend `/sdlc-orchestrate docs/brief.md` for the full SDLC with Orca workers, or `/sdlc-spec` then `/sdlc-plan` when the brief describes one feature of an existing product.

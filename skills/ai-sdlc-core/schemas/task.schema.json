@@ -109,6 +109,14 @@
       },
       "minItems": 1
     },
+    "test_seams": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 5
+      },
+      "minItems": 1
+    },
     "required_checks": {
       "type": "array",
       "items": {

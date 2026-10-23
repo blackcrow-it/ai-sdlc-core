@@ -1,0 +1,3 @@
+interface:
+  display_name: "SDLC Domain Modeling"
+  short_description: "Sharpen domain terms; keep GLOSSARY.md and ADRs current"

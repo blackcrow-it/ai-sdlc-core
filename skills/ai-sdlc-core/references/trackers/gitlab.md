@@ -18,6 +18,6 @@ it as `--repo`). Flags differ between `glab` versions: confirm with `glab issue 
 | Record evidence | `glab issue note <n> --message "<HANDOFF report>"` |
 | Dependencies | `dependencies` lists task IDs; mention `Blocked by #<n>` in the description when helpful |
 | Link to Orca | After `worker-start`, `orca reference add <issue-url> --worktree id:<worktree id from the receipt>` |
-| Close | `glab issue close <n>` after commenting the gate decision (`accepted` or `cancelled`) |
+| Close | `glab issue close <n>` after commenting the gate decision (`accepted` or `cancelled`). If `input_artifacts` names a triaged source issue whose tasks are now all closed, comment the outcome there and close it too |
 
 Never put secrets, credentials or private data in issues.

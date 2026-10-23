@@ -70,6 +70,8 @@ def project_context(core, config):
     lines.append(f'- Task tracker (the only place task contracts live): `{tracker["provider"]}`'
                  + (f' `{tracker["project"]}`' if tracker['project'] else '')
                  + f'; conventions: core `{tracker_doc(config)}`' + (f' - {tracker["notes"]}' if tracker['notes'] else ''))
+    if tracker.get('triage_labels'):
+        lines.append('- Triage labels: ' + ', '.join(f'{role}=`{label}`' for role, label in tracker['triage_labels'].items()))
     lines.append(f'- Enabled phases: {code_list(sdlc["enabled_phases"])}; enabled roles: {code_list(sdlc["enabled_roles"])}')
     approvers = ', '.join(f'{k}={v or "UNASSIGNED"}' for k, v in sdlc['approvers'].items())
     lines.append(f'- Human approvers: {approvers}; release environments: {code_list(sdlc["release_environments"])}')
@@ -88,6 +90,13 @@ def project_files(core, config):
     return list(dict.fromkeys(files))
 
 
+def scope_command(core, task):
+    """Self-contained scope check for a worker: the allowed paths are inlined, protected paths come
+    from the committed project config, and the base defaults to the merge-base with the default branch."""
+    allowed = ' '.join(f'--allowed "{path}"' for path in task['scope']['allowed_paths'])
+    return f'python "{core.script}" scope {allowed}'
+
+
 def build_worker_spec(core, config, task):
     role = core.role(task['owner_agent'])
     core_refs = [role['role_file']] + [p['playbook'] for p in core.phases_owned_by(role['id'])] \
@@ -101,6 +110,8 @@ def build_worker_spec(core, config, task):
         'owner_agent': task['owner_agent'], 'reviewer_agent': task['reviewer_agent'],
         'dependencies': code_list(task['dependencies'], '(none)'),
         'acceptance_criteria': bullets(task['acceptance_criteria']),
+        'test_seams': '; '.join(task.get('test_seams', [])) or '(none listed: the task has no code-level tests)',
+        'scope_check': scope_command(core, task),
         'deliverables': code_list(task['deliverables']),
         'input_artifacts': code_list(task.get('input_artifacts', []), '(none)'),
         'allowed_paths': code_list(task['scope']['allowed_paths']),
@@ -182,6 +193,7 @@ def build_task_body(task):
         '### Acceptance criteria',
         *[f'- [ ] {item}' for item in task['acceptance_criteria']],
         '',
+        *(['### Test seams', *[f'- {seam}' for seam in task['test_seams']], ''] if task.get('test_seams') else []),
         '### Scope',
         f'- Write only: {code_list(scope["allowed_paths"])}',
         f'- Forbidden: {code_list(scope["forbidden_actions"])}',
