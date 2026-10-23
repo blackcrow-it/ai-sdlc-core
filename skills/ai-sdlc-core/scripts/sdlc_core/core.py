@@ -72,9 +72,6 @@ class Core:
     def phases_owned_by(self, role_id):
         return [p for p in self.phases if p['owner'] == role_id]
 
-    def path(self, rel):
-        return self.root / rel
-
     def schema(self, name):
         return read_json(self.root / 'schemas' / f'{name}.schema.json')
 

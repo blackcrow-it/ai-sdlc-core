@@ -170,14 +170,14 @@ không còn placeholder `REPLACE`. Protected paths và forbidden actions mặc �
 |---|---|
 | `skills/ai-sdlc-core/SKILL.md`, `core.json` | Skill chính và manifest phiên bản (nguồn sự thật duy nhất của version) |
 | `skills/ai-sdlc-core/agents/`, `workflows/` | 14 vai trò + `registry.json`; 9 playbook + `manifest.json` |
-| `skills/ai-sdlc-core/policies/`, `templates/`, `schemas/` | Policy, mẫu tài liệu, JSON Schema (task, artifact, project) |
+| `skills/ai-sdlc-core/policies/`, `templates/`, `schemas/` | Policy, mẫu tài liệu, JSON Schema (task, project) |
 | `skills/ai-sdlc-core/references/` | Operating contract, handoff, gán role, thiết lập Orca, kích hoạt Orchestrator |
 | `skills/ai-sdlc-core/assets/` | Template prompt/spec, khối `AGENTS.md`/`CLAUDE.md`, brief smoke test |
 | `skills/ai-sdlc-core/scripts/` | Bootstrap CLI `sdlc.py` + gói `sdlc_core` |
 | `skills/sdlc-{setup,status,task,smoke,orchestrate}/` | 5 workflow skill (slash command) + `agents/openai.yaml` cho Codex |
 | `skills/sdlc-{requirements-analysis,system-design,implementation,code-review,testing}/` | 5 role skill cho worker |
 | `.ai-sdlc/project.json` | Repo này cũng được quản lý bằng chính core (dogfooding) |
-| `examples/` | Config mẫu, task contract mẫu, hồ sơ DAG demo-auth từ v1.1 |
+| `examples/` | Config dự án mẫu, task contract mẫu |
 | `tests/` | Unit/integration test cho core và CLI |
 
 ## Kiểm chứng
@@ -205,7 +205,7 @@ v1.1 đặt toàn bộ cấu hình ở gốc repo; v2.0 chuyển chúng vào ski
 | `scripts/build_worker_spec.py --role business-analyst` | `sdlc.py smoke spec` (smoke) / `sdlc.py spec --task` (mọi role) |
 | `scripts/check_smoke_output.py` | `sdlc.py smoke check` |
 | `outputs/smoke-test/` | `.ai-sdlc/runs/smoke-test/` |
-| `docs/proposals/auth-sdlc.md`, `reports/preflight/auth-sdlc.json` | `examples/demo-auth/` (hồ sơ tham khảo) |
+| `docs/proposals/`, `reports/`, `schemas/artifact.schema.json` | Đã bỏ (hồ sơ chạy thử v1.1, schema không dùng) |
 
 Dự án đang dùng bản sao v1.1: cài skill v2.0, chạy `sdlc.py init`, chuyển quy tắc riêng của dự án vào
 `.ai-sdlc/project.json` (hoặc `extra_policies`), rồi xoá các bản sao `agents/`, `workflows/`, `policies/`… khỏi repo dự án.

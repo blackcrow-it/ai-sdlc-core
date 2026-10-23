@@ -10,13 +10,6 @@
 __pycache__/
 .pytest_cache/
 .venv/
-node_modules/
-dist/
-build/
-coverage/
 .DS_Store
-outputs/
-reports/
-# Keep project artifacts in Git only when reviewed and approved.
 # AI SDLC Core generated prompts/specs
 .ai-sdlc/runs/

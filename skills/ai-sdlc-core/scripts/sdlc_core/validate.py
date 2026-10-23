@@ -8,7 +8,7 @@ from .core import read_frontmatter
 CORE_FILES = [
     'SKILL.md', 'core.json', 'agents/registry.json', 'workflows/manifest.json',
     'policies/permissions.md', 'policies/approval-rules.md', 'policies/quality-gates.md',
-    'schemas/task.schema.json', 'schemas/artifact.schema.json', 'schemas/project.schema.json',
+    'schemas/task.schema.json', 'schemas/project.schema.json',
     'references/OPERATING-CONTRACT.md', 'references/HANDOFF.md', 'references/ORCA-SETUP.md',
     'references/ORCHESTRATOR-ACTIVATION.md', 'references/ROLE-ASSIGNMENT.md',
     'assets/prompts/orchestrator-activation.md', 'assets/prompts/smoke-orchestrator.md',
@@ -16,8 +16,6 @@ CORE_FILES = [
     'assets/project/AGENTS.block.md', 'assets/project/CLAUDE.block.md',
     'assets/smoke/project-brief.md',
 ]
-TASK_STATUSES = ('draft', 'ready', 'in_progress', 'blocked', 'submitted_for_review',
-                 'changes_requested', 'accepted', 'cancelled')
 
 
 def _check_skill(skill_md, expected_name, expected_version, label):
