@@ -5,7 +5,7 @@ argument-hint: "What to look at, e.g. \"what needs attention\" or \"#42\""
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.2"
+  version: "0.1.3"
 ---
 
 Triage the issues that arrive on this project's tracker: bug reports and feature requests **you did not write**. Task issues (titled `TASK-NNN: ...` or labelled `sdlc`) are already agent-ready by construction; never triage them.

@@ -5,7 +5,7 @@ argument-hint: "Optional: feature name"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.2"
+  version: "0.1.3"
 ---
 
 Write a feature spec from what this conversation and the codebase already establish. Do **not** interview the user about the feature again; synthesise.

@@ -4,6 +4,7 @@ import json
 import re
 from pathlib import Path
 
+from .project import resolve_agent
 from .validate import CONTRACT_BEGIN, CONTRACT_END, effective_forbidden_actions, effective_protected_paths
 
 PLACEHOLDER_RE = re.compile(r'\{\{([a-z_]+)\}\}')
@@ -41,7 +42,7 @@ def smoke_paths(core):
             'requirements': f'{base}/auth-requirements.md', 'handoff': f'{base}/ba-handoff.md'}
 
 
-def project_context(core, config):
+def project_context(core, config, default_agent=None):
     p, stack, arch = config['project'], config['stack'], config['architecture']
     cmds, rules, scope, sdlc = config['commands'], config['coding_rules'], config['scope'], config['sdlc']
     lines = [
@@ -73,6 +74,10 @@ def project_context(core, config):
     if tracker.get('triage_labels'):
         lines.append('- Triage labels: ' + ', '.join(f'{role}=`{label}`' for role, label in tracker['triage_labels'].items()))
     lines.append(f'- Enabled phases: {code_list(sdlc["enabled_phases"])}; enabled roles: {code_list(sdlc["enabled_roles"])}')
+    lines.append(f'- Default Orca CLI: `{default_agent or config["orca"]["agent"]}`; role assignments '
+                 '(missing roles inherit the default): '
+                 + (', '.join(f'`{role}` → `{agent}`' for role, agent in
+                              sorted(config['orca'].get('role_agents', {}).items())) or '(none)'))
     approvers = ', '.join(f'{k}={v or "UNASSIGNED"}' for k, v in sdlc['approvers'].items())
     lines.append(f'- Human approvers: {approvers}; release environments: {code_list(sdlc["release_environments"])}')
     if config['extra_policies']:
@@ -108,6 +113,8 @@ def build_worker_spec(core, config, task):
         'task_id': task['task_id'], 'title': task['title'], 'core_version': core.version,
         'project_id': config['project']['id'], 'project_name': config['project']['name'],
         'owner_agent': task['owner_agent'], 'reviewer_agent': task['reviewer_agent'],
+        'owner_cli': resolve_agent(config, task['owner_agent']),
+        'reviewer_cli': resolve_agent(config, task['reviewer_agent']),
         'dependencies': code_list(task['dependencies'], '(none)'),
         'acceptance_criteria': bullets(task['acceptance_criteria']),
         'test_seams': '; '.join(task.get('test_seams', [])) or '(none listed: the task has no code-level tests)',
@@ -159,7 +166,7 @@ def _activation_values(core, config, agent):
         'agent': agent or config['orca']['agent'],
         'reply_language': config['project']['reply_language'],
         'project_name': config['project']['name'],
-        'project_context': project_context(core, config),
+        'project_context': project_context(core, config, agent),
         'core_reads': bullets(core_file(core, rel) for rel in reads),
         'project_reads': bullets(f'`{rel}`' for rel in project_files(core, config)),
         'worktree_strategy': config['orca']['worktree_strategy'],
@@ -180,7 +187,8 @@ def build_smoke_prompt(core, config, agent=None):
     values = _activation_values(core, config, agent)
     paths = smoke_paths(core)
     values.update({'spec_path': paths['spec'], 'requirements_path': paths['requirements'],
-                   'handoff_path': paths['handoff']})
+                   'handoff_path': paths['handoff'],
+                   'smoke_agent': resolve_agent(config, 'business-analyst', agent)})
     return render(core.asset('prompts/smoke-orchestrator.md'), values)
 
 

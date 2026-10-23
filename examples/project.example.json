@@ -141,6 +141,12 @@
   },
   "orca": {
     "agent": "claude",
+    "role_agents": {
+      "business-analyst": "claude",
+      "frontend-developer": "antigravity",
+      "backend-developer": "codex",
+      "code-reviewer": "claude"
+    },
     "worktree_strategy": "per-task",
     "max_parallel_workers": 2
   },

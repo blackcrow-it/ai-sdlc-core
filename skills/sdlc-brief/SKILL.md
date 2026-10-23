@@ -5,7 +5,7 @@ argument-hint: "One line about the idea"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.2"
+  version: "0.1.3"
 ---
 
 Write the project brief for the idea the user described. The brief feeds the discovery phase of /sdlc-orchestrate. It records decisions, not designs.

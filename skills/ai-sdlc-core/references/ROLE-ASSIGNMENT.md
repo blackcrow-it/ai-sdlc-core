@@ -10,3 +10,49 @@
 
 ## Lưu ý
 Một role ≠ một tiến trình cố định. Cùng một provider CLI có thể được điều phối ở nhiều role khác nhau qua những task spec khác nhau. Đừng giả định Orca đọc `registry.json` tự động.
+
+## Chọn CLI theo công việc
+
+`orca.agent` là CLI mặc định (`claude`, `codex` hoặc `antigravity`). `orca.role_agents` là map tùy chọn từ
+role ID đang bật sang CLI; role không có entry kế thừa mặc định. Ví dụ:
+
+```json
+{
+  "agent": "claude",
+  "role_agents": {
+    "business-analyst": "claude",
+    "frontend-developer": "antigravity",
+    "backend-developer": "codex",
+    "code-reviewer": "claude"
+  },
+  "worktree_strategy": "per-task",
+  "max_parallel_workers": 2
+}
+```
+
+Đây là phần `orca` của config, không phải config đầy đủ hay xếp hạng năng lực CLI. `/sdlc-setup` hỏi lựa chọn
+và ghi bằng `init --agent <id> --role-agent <role>=<id>` (lặp flag theo role). Config cũ không có map giữ nguyên
+hành vi. Không dùng role đã tắt, không dùng tên skill hoặc task ID làm key. Owner/reviewer trong task contract
+vẫn là role, không thay thành tên CLI; không thêm bản sao map vào tracker.
+
+Orchestrator áp dụng `role_agents[owner_agent]` rồi `agent`; reviewer dùng `role_agents[reviewer_agent]` rồi
+`agent` riêng. `activate --agent <id>` chỉ thay mặc định trong prompt của lần chạy đó, không ghi config và không
+ghi đè role đã chọn riêng. Smoke dùng role `business-analyst`. Spec hiển thị owner/reviewer CLI theo config;
+nếu dùng mặc định tạm thời khi activate, đối chiếu lại các role kế thừa trước dispatch, không sửa role override.
+CLI render chỉ tạo văn bản; Orca không tự đọc map. Orchestrator truyền CLI đã phân giải vào
+`worker-start --agent <id>` theo guide đúng phiên bản và ghi CLI thực tế cùng Task/Dispatch ID trong evidence.
+
+Trước khi trình plan và ngay trước dispatch, kiểm tra trên **execution host**: CLI đã tích hợp và được bật trong
+Orca, xác thực sẵn sàng, đọc được core/role skills, có tools và hỗ trợ lifecycle orchestration cần cho task.
+Dùng guide `orca-cli`/`orchestration` đang cài và các lệnh discovery read-only được `--help` xác nhận; không bịa
+lệnh liệt kê agent, tên model hay đường dẫn skill cho provider. Nếu không xác minh được, ghi unverified/blocker;
+không khởi chạy thử để thay cho kiểm tra read-only trước approval. Chỉ có binary trên PATH chưa đủ.
+
+Trình role → CLI và các khả năng còn thiếu trong plan xin duyệt. Khi thiếu CLI/tool, dừng task bị ảnh hưởng và
+đề nghị người dùng chọn lại; không tự thay CLI, tự cài tool hay bật integration. Sau lỗi khởi chạy không rõ kết
+quả, đối soát receipt/lifecycle theo guide trước mọi retry, không mở worker khác để né lỗi.
+
+Map không cấp quyền, không thay model/effort và không chuyển CLI của phiên đang chạy. Entry `orchestrator` là
+lựa chọn khi con người mở phiên điều phối; phiên hiện tại chỉ báo khác biệt, không tự khởi chạy hay handoff.
+`/sdlc-implement` trực tiếp vẫn làm trong phiên hiện tại; map chỉ là dữ liệu dispatch cho Orca, không là lý do
+để tự tạo worker. Reviewer phải độc lập với tác giả dù dùng cùng CLI hay khác CLI.

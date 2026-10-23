@@ -43,7 +43,7 @@ Mở phiên Claude Code hoặc Codex của repository trong Orca, rồi gõ slas
 | Slash command | Tác dụng |
 |---|---|
 | `/sdlc-help <tình huống>` | Bản đồ mọi skill và luồng; khi nào nên tiếp tục, `/clear`, handoff, sub-agent hay `/compact` |
-| `/sdlc-setup` | Dò stack, phỏng vấn theo vòng về kiến trúc, lệnh test, quy tắc coding, phạm vi, người phê duyệt, **issue tracker**, nhãn triage; ghi và validate `.ai-sdlc/project.json`, commit sau khi bạn đồng ý |
+| `/sdlc-setup` | Dò stack, phỏng vấn về kiến trúc, lệnh test, quy tắc coding, phạm vi, người phê duyệt, **CLI mặc định/theo role**, issue tracker, nhãn triage; ghi và validate `.ai-sdlc/project.json`, commit sau khi bạn đồng ý |
 | `/sdlc-status` | Báo cáo chỉ đọc: core, skill, config, Git baseline, Orca, task, **frontier** (task sẵn sàng làm), Run, lệnh nên dùng tiếp |
 | `/sdlc-brief <ý tưởng>` | Phỏng vấn về mục tiêu, người dùng, MVP, tiêu chí thành công, ràng buộc; viết `docs/brief.md` |
 | `/sdlc-grill <kế hoạch>` | Phỏng vấn "tra hỏi" đến khi mọi nhánh quyết định được giải quyết; ghi thuật ngữ vào `GLOSSARY.md`, quyết định khó đảo ngược thành ADR |
@@ -283,7 +283,7 @@ Mọi lệnh nhận `-C <project-dir>` (mặc định thư mục hiện tại).
 |---|---|
 | `version`, `where [--json]` | Phiên bản và đường dẫn core đã cài (các đường dẫn `agents/...`, `policies/...` trong tài liệu core tính từ đây) |
 | `install` | Copy 26 skill vào thư mục skill của agent (offline) |
-| `init` | Tạo `.ai-sdlc/project.json`, khối quản lý `AGENTS.md`/`CLAUDE.md`, ignore `.ai-sdlc/runs/` (`--tracker`, `--tracker-project`, `--tracker-notes`, `--triage-label ROLE=LABEL`, `--approver ROLE=NAME`, `--dry-run`, `--force`, `--no-detect`, `--no-agent-files`) |
+| `init` | Tạo `.ai-sdlc/project.json`, khối quản lý `AGENTS.md`/`CLAUDE.md`, ignore `.ai-sdlc/runs/` (`--agent`, `--role-agent ROLE=AGENT`, `--tracker`, `--tracker-project`, `--tracker-notes`, `--triage-label ROLE=LABEL`, `--approver ROLE=NAME`, `--dry-run`, `--force`, `--no-detect`, `--no-agent-files`) |
 | `validate [--task F ...] [--core-only] [--bundled]` | Kiểm tra toàn vẹn core, config dự án (schema + quy tắc) và task contract (`F` là file JSON hoặc nội dung issue đã tải về); nhiều `--task` thì kiểm tra thêm đồ thị phụ thuộc |
 | `doctor [--offline] [--json]` | Kiểm tra sẵn sàng, chỉ đọc; exit 1 khi có FAIL |
 | `task new --id --title --role` | Tạo task contract nháp, điền sẵn checks/forbidden actions (và chỗ cho `test_seams` với role code). Tracker `local` ghi vào `.ai-sdlc/tasks/`; tracker khác ghi vào `.ai-sdlc/runs/tasks/` (nháp, chưa publish) |
@@ -291,7 +291,7 @@ Mọi lệnh nhận `-C <project-dir>` (mặc định thư mục hiện tại).
 | `spec --task F` | Render worker spec tự chứa (role, policy, cấu hình dự án, phạm vi, test seam, lệnh scope check, checks) vào `.ai-sdlc/runs/specs/` |
 | `scope (--task F \| --allowed P ...) [--base REF]` | Exit 1 khi có file đổi nằm ngoài phạm vi task hoặc chạm protected path; base mặc định là merge-base với nhánh mặc định |
 | `docs-check --task F [--base REF]` | Kiểm tra assessment, file tài liệu cam kết cập nhật và requirement ID; cần review nội dung riêng |
-| `activate [--brief F] [--smoke] [--stdout] [--agent claude\|codex]` | Render prompt kích hoạt Orchestrator |
+| `activate [--brief F] [--smoke] [--stdout] [--agent claude\|codex\|antigravity]` | Render prompt kích hoạt Orchestrator; `--agent` chỉ thay CLI mặc định của lần chạy, role đã gán riêng vẫn ưu tiên |
 | `smoke spec\|check` | Spec smoke test BA / kiểm tra tĩnh output |
 | `upgrade [--dry-run]` | Chuyển `core_version` của dự án lên core đã cài nếu tương thích, làm mới khối quản lý |
 
@@ -311,8 +311,27 @@ Schema: [`project.schema.json`](skills/ai-sdlc-core/schemas/project.schema.json)
 | `scope` | `in_scope`/`out_of_scope` chức năng, `allowed_paths` (trần ghi), `protected_paths`, `forbidden_actions` bổ sung |
 | `sdlc` | Phase/role được bật, người phê duyệt, retry mặc định, môi trường release |
 | `tracker` | Nơi duy nhất lưu task: `local`, `github`, `gitlab`, `jira`, `other`; `project`, `notes`; `triage_labels` (tuỳ chọn) |
-| `orca` | Agent (`claude`/`codex`), chiến lược worktree, số worker song song |
+| `orca` | CLI mặc định `agent` (`claude`/`codex`/`antigravity`), map tùy chọn `role_agents`, chiến lược worktree, số worker song song |
 | `extra_policies` | Policy riêng của dự án (chỉ bổ sung ràng buộc) |
+
+Khi chạy `/sdlc-setup`, chọn CLI mặc định rồi chọn dùng chung hay gán riêng theo công việc. Các nhóm công việc
+được mở thành role ID đang bật; skill trình bảng đầy đủ role → CLI (gán riêng/kế thừa) để bạn kiểm tra trước
+khi ghi. Ví dụ phần `orca` trong [config mẫu](examples/project.example.json) dùng Claude cho BA/review, Codex
+cho backend và Antigravity cho frontend; đây là ví dụ phân công, không phải xếp hạng năng lực.
+
+```bash
+python skills/ai-sdlc-core/scripts/sdlc.py init --dry-run --agent claude --role-agent backend-developer=codex --role-agent frontend-developer=antigravity
+```
+
+Lệnh trên chỉ xem trước, cần thêm các quyết định còn lại của project trước khi init thật. Role chưa gán riêng
+kế thừa `orca.agent`; config cũ không có `role_agents` giữ hành vi cũ. Task vẫn ghi role trong `owner_agent` và
+`reviewer_agent`; Orchestrator phân giải CLI riêng cho hai role rồi truyền vào Orca `worker-start --agent`.
+Smoke dùng cấu hình Business Analyst. Cùng CLI vẫn phải có worker review độc lập với tác giả.
+
+Trước dispatch phải xác minh CLI được bật trên execution host, xác thực, skills và tools phù hợp. Thiếu khả năng
+thì báo blocker và xin chọn lại, không tự thay CLI. Setup không khởi chạy worker, không đổi model hay CLI của
+phiên hiện tại. `doctor` chưa xác minh đầy đủ khả năng từng CLI; validation chỉ kiểm tra cấu trúc và role hợp lệ.
+Chi tiết: [ROLE-ASSIGNMENT.md](skills/ai-sdlc-core/references/ROLE-ASSIGNMENT.md).
 
 Quy tắc bất biến được `validate` cưỡng chế: phải bật `orchestrator`; có developer role thì phải có `code-reviewer`;
 có `development` thì phải có `testing`; owner của phase được bật phải được bật; đường dẫn phải tương đối, không `..`;
@@ -348,7 +367,7 @@ python skills/ai-sdlc-core/scripts/sdlc.py doctor --offline
 
 ## Phiên bản (Versioning)
 
-Bản hiện tại là **0.1.2**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
+Bản hiện tại là **0.1.3**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
 `metadata.version` của mọi `SKILL.md` trong gói; `sdlc.py validate --bundled` buộc các giá trị này khớp nhau.
 Mỗi dự án pin `core_version` trong `.ai-sdlc/project.json`. Quy tắc tương thích theo semver:
 
@@ -376,6 +395,14 @@ Không tự sửa config, baseline hay approval của project khi nâng cấp. C
 cơ chế batch/câu trả lời, thay mẫu Markdown cũ; chat là fallback theo khả năng của từng câu hỏi. Không thêm tool
 runtime vào Bootstrap CLI, không đổi schema config/task, không tự bật mode hay thay quyền phê duyệt. Cài lại gói
 skill `0.1.2` để nhận hành vi mới; project pin cùng dòng `0.1.x` vẫn tương thích.
+
+### Nâng cấp 0.1.2 → 0.1.3
+
+Thêm `orca.role_agents` tùy chọn, `init --role-agent ROLE=AGENT`, và nhận `antigravity` cùng `claude`/`codex`.
+Giữ config schema `0.1`: config cũ vẫn hợp lệ và kế thừa CLI mặc định. Cài core/skills `0.1.3` trước khi dùng
+trường mới; engine cũ chưa nhận map này. `/sdlc-setup` hỏi lựa chọn khi tạo project mới, không tự sửa config
+project đã có; thay đổi config hiện hữu cần được người dùng cho phép, không dùng `init --force` chỉ để thêm map.
+Không thêm runtime dispatcher vào Bootstrap CLI và không tự thay đổi cấu hình Orca/model/quyền.
 
 ## Giới hạn quan trọng
 

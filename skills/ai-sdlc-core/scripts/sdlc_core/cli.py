@@ -7,7 +7,7 @@ from pathlib import Path
 from .core import Core
 from .documentation import check_documentation
 from .environment import install_skills, install_targets, run_doctor, upgrade_project
-from .project import (APPROVER_ROLES, COMMAND_KEYS, TRIAGE_ROLES, changed_paths, init_project, load_config,
+from .project import (APPROVER_ROLES, COMMAND_KEYS, ORCA_AGENTS, TRIAGE_ROLES, changed_paths, init_project, load_config,
                       refresh_blocks, validate_config, write_text)
 from .render import (build_activation_prompt, build_smoke_prompt, build_smoke_spec, build_task_body,
                      build_worker_spec, check_smoke_outputs, smoke_paths)
@@ -105,6 +105,22 @@ def cmd_init(core, args):
             return 1
         labels[role] = label.strip()
     opts['triage_labels'] = labels
+    role_agents = {}
+    for item in args.role_agent or []:
+        role, separator, agent = item.partition('=')
+        role, agent = role.strip(), agent.strip()
+        if not separator or role not in core.role_ids or agent not in ORCA_AGENTS:
+            print(f'FAIL: --role-agent expects ROLE=AGENT with an SDLC role and AGENT in '
+                  f'{", ".join(ORCA_AGENTS)}; got {item!r}')
+            return 1
+        if role not in (args.role or core.role_ids):
+            print(f'FAIL: --role-agent role is not enabled: {role}')
+            return 1
+        if role in role_agents and role_agents[role] != agent:
+            print(f'FAIL: conflicting --role-agent assignments for {role}')
+            return 1
+        role_agents[role] = agent
+    opts['role_agents'] = role_agents
     try:
         config, actions, evidence = init_project(core, d, opts, force=args.force, dry_run=args.dry_run,
                                                  write_agent_files=not args.no_agent_files)
@@ -335,7 +351,7 @@ def cmd_activate(core, args):
         rel = f'{core.layout("runs_dir")}/orchestrator-activation.md'
     _write(d, rel, prompt, args.stdout)
     if not args.stdout:
-        print('Next: open a Claude Code/Codex session for this repository inside Orca and paste the whole file.'
+        print('Next: open an agent session with core skills and orchestration tools for this repository inside Orca and paste the whole file.'
               ' The Orchestrator must stop for explicit human approval before any Orca mutation.')
     if failed:
         print('NOTE: blockers above must be resolved first; the prompt instructs the Orchestrator to stop and report them.')
@@ -405,7 +421,9 @@ def build_parser():
     p = command('init', cmd_init, 'create .ai-sdlc/project.json and managed AGENTS.md/CLAUDE.md blocks')
     for flag in ('name', 'id', 'description', 'default-branch', 'repository-url', 'reply-language',
                  'package-manager', 'architecture-style', 'architecture-summary', 'agent'):
-        p.add_argument(f'--{flag}', choices=['claude', 'codex'] if flag == 'agent' else None)
+        p.add_argument(f'--{flag}', choices=ORCA_AGENTS if flag == 'agent' else None)
+    p.add_argument('--role-agent', action='append', metavar='ROLE=AGENT',
+                   help='CLI override for an enabled SDLC role; others inherit --agent (repeatable)')
     for flag in ('language', 'framework', 'runtime', 'architecture-doc', 'rule', 'rule-file', 'in-scope',
                  'out-of-scope', 'allowed-path', 'protected-path', 'forbidden-action', 'role', 'phase',
                  'extra-policy'):
@@ -463,7 +481,7 @@ def build_parser():
 
     p = command('activate', cmd_activate, 'render the Orchestrator activation prompt for this project')
     p.add_argument('--brief', help='repo-relative project brief / objective file')
-    p.add_argument('--agent', choices=['claude', 'codex'])
+    p.add_argument('--agent', choices=ORCA_AGENTS, help='override the default worker CLI; role assignments still win')
     p.add_argument('--smoke', action='store_true', help='one-worker BA smoke test instead of a full SDLC run')
     p.add_argument('--offline', action='store_true', help='skip Orca reachability checks')
     p.add_argument('--stdout', action='store_true')

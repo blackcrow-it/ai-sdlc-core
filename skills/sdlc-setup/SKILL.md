@@ -1,11 +1,11 @@
 ---
 name: sdlc-setup
-description: Set up AI SDLC Core in the current repository - detect the stack, interview the user for what cannot be detected, write .ai-sdlc/project.json and the AGENTS.md/CLAUDE.md blocks, validate and commit.
+description: Set up AI SDLC Core in the current repository - detect the stack, interview the user, choose default and per-role Orca CLIs, write .ai-sdlc/project.json and the AGENTS.md/CLAUDE.md blocks, validate and commit.
 argument-hint: "Optional: one line about the project"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.2"
+  version: "0.1.3"
 ---
 
 Set up AI SDLC Core in the repository at the current working directory. You run every command; never ask the user to type one.
@@ -20,6 +20,10 @@ If `.ai-sdlc/project.json` already exists, stop and use /sdlc-status instead. Re
 
 - `SDLC init --dry-run` prints `DETECTED` lines (each with its evidence) and the draft config.
 - Read `docs/brief.md` if present, README, CONTRIBUTING, package manifests, lockfiles, CI workflows and any existing `AGENTS.md` / `CLAUDE.md`. The brief's scope, constraints and product owner are the starting answers for step 3.
+- Read core `references/ROLE-ASSIGNMENT.md` for CLI routing. Use the installed `orca-cli` guide and read-only
+  discovery to check the configured/enabled CLIs on the intended execution host and their skill/tool support.
+  A binary on PATH alone does not prove Orca integration. If discovery is unavailable, mark availability unverified
+  and show that gap; do not start a worker, change Orca settings, or install tools during setup to test a choice.
 
 From this, prepare a recommended answer for every question in step 3. Facts are your job; only decisions go to the user.
 
@@ -37,7 +41,16 @@ prerequisites are settled. Tool/mode restrictions and fallback follow that skill
 6. Functional scope: in scope and out of scope.
 7. Write ceiling (`allowed_paths`) and extra protected paths. Core protections (`.ai-sdlc/project.json`, CI workflows, `.env*`, keys, secrets) always apply.
 8. Human approvers: product_owner, tech_lead, security_owner, release_owner. Use real names only; an empty role keeps its gate blocked.
-9. Worker agent (`claude` or `codex`) and any phases or roles to disable (default: all enabled).
+9. Phases/roles to enable (default: all), then the default worker CLI (`claude`, `codex` or `antigravity`).
+   Ask whether all enabled roles should inherit it or the user wants assignments by work type. With assignments,
+   use small interactive batches to select a CLI for each requested role; related roles may share one choice when
+   the prompt names all affected roles. Cover requirements/product, architecture/data, UI/frontend, backend,
+   testing/security, review, DevOps, documentation and coordination where enabled. Show the actual role IDs from
+   `agents/registry.json`; expand group choices into individual `orca.role_agents` entries. Review a complete
+   role → CLI table, including inherited defaults, so no enabled work is silently assigned. Never infer a CLI's
+   quality or tools from its name; recommend from verified capabilities and the user's preferences. Skip disabled
+   roles and reuse earlier decisions. The same CLI may implement and review in separate independent sessions.
+   Do not collect model/effort unless separately requested: this mapping chooses CLIs, leaving their model config intact.
 10. **Issue tracker:** the single place task contracts will live. Options are `local` (JSON files in `.ai-sdlc/tasks/`, committed), `github` (`gh`), `gitlab` (`glab`), `jira` (through `orca jira`; needs the project key), or `other` (the user describes the workflow in one paragraph). Recommend the tracker named in the `tracker suggestion` line from `init --dry-run` when there is one; otherwise recommend `local`. Tasks are never mirrored to a second place.
 11. **Triage labels** (only for a remote tracker): "Keep the default triage labels?" (recommended: yes). The defaults equal the role names: `bug`, `enhancement`, `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. Only when the tracker already uses other strings, collect the overrides as `--triage-label ROLE=LABEL` so /sdlc-triage applies the existing labels instead of creating duplicates.
 
@@ -45,7 +58,13 @@ Domain docs need no question: the skills use a root `GLOSSARY.md` and `docs/adr/
 
 ## 4. Write and validate
 
-Run `SDLC init` with the agreed answers: `--name --id --description --reply-language --language --framework --package-manager --runtime --architecture-style --architecture-summary --architecture-doc --install-cmd --build-cmd --lint-cmd --typecheck-cmd --test-cmd --e2e-cmd --security-cmd --rule --rule-file --in-scope --out-of-scope --allowed-path --protected-path --approver ROLE=NAME --agent --phase --role --tracker --tracker-project --tracker-notes --triage-label ROLE=LABEL`. Repeat a flag for several values; quote every value.
+Run `SDLC init` with the agreed answers: `--name --id --description --reply-language --language --framework --package-manager --runtime --architecture-style --architecture-summary --architecture-doc --install-cmd --build-cmd --lint-cmd --typecheck-cmd --test-cmd --e2e-cmd --security-cmd --rule --rule-file --in-scope --out-of-scope --allowed-path --protected-path --approver ROLE=NAME --agent --role-agent ROLE=AGENT --phase --role --tracker --tracker-project --tracker-notes --triage-label ROLE=LABEL`. Repeat a flag for several values; quote every value.
+
+Use `--agent` for the default and repeat `--role-agent` for agreed overrides, for example
+`--agent "claude" --role-agent "backend-developer=codex" --role-agent "frontend-developer=antigravity"`.
+Omit overrides for inherited roles. Preview these same flags with `--dry-run` before writing and compare every
+resolved assignment against the reviewed table. Initialization stores preferences only; it does not launch or
+switch the current agent. Unverified availability must remain visible in the handoff and block affected dispatch.
 
 Run `SDLC validate`. Fix each error by re-running init with `--force` and corrected flags. Do not hand-edit around the validator.
 
@@ -56,7 +75,8 @@ artifacts as planned. Setup does not fabricate requirements or approvals to fill
 
 ## 5. Review and commit
 
-Show the user a short summary of the config, documentation map/gaps and `git diff --stat`. On their approval,
+Show the user a short summary of the config, resolved role → CLI table (explicit/inherited), availability gaps,
+documentation map/gaps and `git diff --stat`. On their approval,
 commit only `.ai-sdlc/project.json AGENTS.md CLAUDE.md .gitignore` and the documentation map written in step 4
 with the message `Adopt AI SDLC Core`. Orca worktrees are created from commits, so uncommitted inputs are invisible
 to workers.

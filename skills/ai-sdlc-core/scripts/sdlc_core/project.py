@@ -10,6 +10,7 @@ from .core import compat_error
 from .validate import bad_relative_path
 
 COMMAND_KEYS = ('install', 'build', 'lint', 'typecheck', 'test', 'e2e', 'security')
+ORCA_AGENTS = ('claude', 'codex', 'antigravity')
 BLOCK_BEGIN = '<!-- ai-sdlc-core:begin -->'
 BLOCK_END = '<!-- ai-sdlc-core:end -->'
 APPROVER_ROLES = ('product_owner', 'tech_lead', 'security_owner', 'release_owner')
@@ -258,6 +259,7 @@ def build_config(core, project_dir, opts=None):
         },
         'orca': {
             'agent': opts.get('agent') or 'claude',
+            **({'role_agents': dict(opts['role_agents'])} if opts.get('role_agents') else {}),
             'worktree_strategy': 'per-task',
             'max_parallel_workers': 2,
         },
@@ -289,6 +291,11 @@ def validate_config(config, core, project_dir=None):
     roles, phases = set(sdlc['enabled_roles']), set(sdlc['enabled_phases'])
     for role in sorted(roles - set(core.role_ids)):
         errors.append(f'Unknown role in sdlc.enabled_roles: {role}')
+    for role in config['orca'].get('role_agents', {}):
+        if role not in core.role_ids:
+            errors.append(f'Unknown role in orca.role_agents: {role}')
+        elif role not in roles:
+            errors.append(f'Role in orca.role_agents is not enabled: {role}')
     for phase in sorted(phases - set(core.phase_names)):
         errors.append(f'Unknown phase in sdlc.enabled_phases: {phase}')
     if 'orchestrator' not in roles:
@@ -325,6 +332,12 @@ def validate_config(config, core, project_dir=None):
     if config['orca']['worktree_strategy'] == 'current':
         warnings.append('orca.worktree_strategy=current is only appropriate for doc-only smoke tests')
     return errors, warnings
+
+
+def resolve_agent(config, role, default_agent=None):
+    """Resolve a CLI without contacting Orca or changing the current agent session."""
+    orca = config['orca']
+    return orca.get('role_agents', {}).get(role, default_agent or orca['agent'])
 
 
 def render_block(core, config, name):

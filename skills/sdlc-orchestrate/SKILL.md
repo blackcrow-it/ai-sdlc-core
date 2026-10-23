@@ -5,7 +5,7 @@ argument-hint: "Objective text, or path to a brief file"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.2"
+  version: "0.1.3"
 ---
 
 Become the supervised SDLC Orchestrator for the repository at the current working directory, in this session. Nothing needs to be copied into another session.
@@ -18,6 +18,9 @@ Become the supervised SDLC Orchestrator for the repository at the current workin
    - With no argument, use `docs/brief.md` if it exists. Otherwise recommend /sdlc-brief, or ask the user for the objective. Never invent one.
 4. Run `SDLC activate --stdout --brief <file>`. The text after its `---` line is your operating prompt for the rest of this session; follow it exactly. It runs doctor, loads `orca skills get orchestration --full` before any mutation, reuses the tasks already in the tracker for this objective (for example from /sdlc-plan) or drafts new contracts per `<CORE>/references/TASK-AUTHORING.md`, publishes them only to the configured tracker following `<CORE>/references/trackers/<provider>.md`, renders specs, and keeps each task's tracker status current.
 5. **Stop** after presenting the plan. Only the user's message `APPROVE-SDLC-PLAN` (optionally limited to named tasks) authorizes Run, Task or worker creation. This skill invocation is not approval.
+   Follow core `references/ROLE-ASSIGNMENT.md`: resolve owner/reviewer CLIs separately from `orca.role_agents`
+   then `orca.agent`, verify availability on the execution host, and include the resolved assignments in that
+   plan. Pass each chosen CLI to worker-start; do not silently substitute another or switch this session's CLI.
 6. After approval, follow the installed Orca guide for run-create, task-create with the complete rendered spec, worker-start, check, ack and release. Verify every `worker_done` against real artifacts, the outputs of the configured commands and `SDLC scope --task <contract> --base <base>` in the worker's worktree, and have a separate reviewer worker run the `sdlc-code-review` skill before any gate is accepted.
 7. Report per Task: Run, Task and Dispatch IDs, outcome, evidence, changed paths and blockers. Leave no settled worker unreleased.
 

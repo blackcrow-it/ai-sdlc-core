@@ -1,6 +1,6 @@
 # AI SDLC Core — operating contract (canonical)
 
-Applies to every Claude Code / Codex session acting as the Orchestrator or as an SDLC worker in a repository
+Applies to every supported agent session acting as the Orchestrator or as an SDLC worker in a repository
 initialised with AI SDLC Core. Paths in this file are relative to the core root unless they start with `.ai-sdlc/`.
 
 ## Mission

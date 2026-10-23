@@ -3,7 +3,7 @@ name: ai-sdlc-core
 description: AI SDLC Core - reusable multi-agent SDLC package (14 roles, 9 workflows, policies, templates, schemas) with a Bootstrap CLI. Use when setting up AI SDLC in a repository (".ai-sdlc/project.json", "init sdlc"), validating that config, creating task contracts or Orca worker specs, or activating/acting as the SDLC Orchestrator or an SDLC worker role in Orca ADE.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.2"
+  version: "0.1.3"
 ---
 
 # AI SDLC Core
@@ -25,7 +25,7 @@ Humans drive the SDLC with slash commands; the agent runs `sdlc.py` itself. User
 | Command | Does |
 |---|---|
 | `/sdlc-help <situation>` | Which skill or flow fits; phase boundaries (continue, clear, handoff, sub-agent, compact) |
-| `/sdlc-setup` | Detect the stack, interview the user, write and validate `.ai-sdlc/project.json`, commit it |
+| `/sdlc-setup` | Detect the stack, interview the user, choose default/per-role Orca CLIs, write and validate `.ai-sdlc/project.json`, commit it |
 | `/sdlc-status` | Read-only readiness report, the task frontier and the recommended next command |
 | `/sdlc-brief <idea>` | Interview the user and write `docs/brief.md` from `templates/project-brief.md`, commit it |
 | `/sdlc-grill <plan>` | Sharpen a plan by interview; update `GLOSSARY.md` and ADRs inline |
@@ -71,6 +71,8 @@ all `policies/*`, `workflows/manifest.json`, `agents/registry.json`, the project
 and `orca skills get orchestration --full`; draft a DAG of task contracts (`sdlc.py task new`, `sdlc.py validate --task`),
 render specs (`sdlc.py spec --task`), then **stop for explicit human approval** before any Orca mutation.
 Details: `references/ORCHESTRATOR-ACTIVATION.md`, `references/ROLE-ASSIGNMENT.md`.
+Before planning dispatch, resolve each owner/reviewer CLI from `orca.role_agents` then `orca.agent` and verify
+capabilities on its execution host per `references/ROLE-ASSIGNMENT.md`. This routing does not switch this session.
 
 ## Acting as an SDLC worker
 Your task spec is self-contained. Read the role file `agents/<role>.md`, the referenced workflow, policies and
