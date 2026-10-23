@@ -19,7 +19,7 @@ If `.ai-sdlc/project.json` already exists, stop and use /sdlc-status instead. Re
 ## 2. Find the facts yourself
 
 - `SDLC init --dry-run` prints `DETECTED` lines (each with its evidence) and the draft config.
-- Read README, CONTRIBUTING, package manifests, lockfiles, CI workflows and any existing `AGENTS.md` / `CLAUDE.md`.
+- Read `docs/brief.md` if present, README, CONTRIBUTING, package manifests, lockfiles, CI workflows and any existing `AGENTS.md` / `CLAUDE.md`. The brief's scope, constraints and product owner are the starting answers for step 3.
 
 From this, prepare a recommended answer for every question in step 3. Facts are your job; only decisions go to the user.
 
@@ -49,4 +49,4 @@ Show the user a short summary of the config plus `git diff --stat`. On their app
 
 ## 6. Hand over
 
-Run `SDLC doctor` and report every FAIL and WARN with its fix. Suggest /sdlc-smoke to prove Orca orchestration end to end, then /sdlc-orchestrate with the real objective.
+Run `SDLC doctor` and report every FAIL and WARN with its fix. Suggest /sdlc-smoke to prove Orca orchestration end to end, then `/sdlc-orchestrate docs/brief.md`. If there is no brief yet, suggest /sdlc-brief first.

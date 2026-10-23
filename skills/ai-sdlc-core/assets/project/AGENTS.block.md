@@ -10,7 +10,7 @@ project-specific configuration; roles, workflows, policies, templates and schema
   `~/.claude/skills`, `~/.agents/skills`).
 - Precedence: human instructions > repository/CI evidence > core policies > `{{config}}` (may only tighten core
   policies, never grants permissions) > task spec > core workflow, role and skill files.
-- Workflow: `/sdlc-status` (readiness), `/sdlc-task <goal>` (task contract + spec), `/sdlc-smoke` (prove Orca),
+- Workflow: `/sdlc-brief <idea>` (write `docs/brief.md`), `/sdlc-status` (readiness), `/sdlc-task <goal>` (task contract + spec), `/sdlc-smoke` (prove Orca),
   `/sdlc-orchestrate <objective>` (act as Orchestrator; stop for `APPROVE-SDLC-PLAN`). Agents run the engine
   `sdlc.py` themselves; workers receive self-contained specs rendered by `sdlc.py spec`.
 - Before reporting done, run the relevant `commands` from `{{config}}` and cite real changed paths and exit codes.

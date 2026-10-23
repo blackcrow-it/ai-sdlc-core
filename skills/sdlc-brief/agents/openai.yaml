@@ -1,0 +1,5 @@
+interface:
+  display_name: "SDLC Brief"
+  short_description: "Interview an idea into docs/brief.md"
+policy:
+  allow_implicit_invocation: false

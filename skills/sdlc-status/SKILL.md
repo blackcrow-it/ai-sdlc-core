@@ -19,4 +19,4 @@ Answer in this shape:
 - **Status:** READY or BLOCKED.
 - **Blockers:** each FAIL with its concrete fix.
 - **Warnings:** each WARN, one line each.
-- **Next:** one recommended slash command: /sdlc-setup, /sdlc-smoke, /sdlc-task or /sdlc-orchestrate.
+- **Next:** one recommended slash command: /sdlc-brief (no `docs/brief.md` and no task contracts yet), /sdlc-setup, /sdlc-smoke, /sdlc-task or /sdlc-orchestrate.

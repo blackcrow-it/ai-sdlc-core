@@ -5,6 +5,7 @@
   "description": "Canonical AI SDLC Core: 14 agent roles, 9 SDLC workflows, policies, templates, schemas and the Bootstrap CLI. Project repositories keep only .ai-sdlc/project.json.",
   "bundled_skills": [
     "ai-sdlc-core",
+    "sdlc-brief",
     "sdlc-setup",
     "sdlc-status",
     "sdlc-task",
@@ -46,6 +47,7 @@
     "disable_ci_or_branch_protection"
   ],
   "workflow_skills": [
+    "sdlc-brief",
     "sdlc-setup",
     "sdlc-status",
     "sdlc-task",

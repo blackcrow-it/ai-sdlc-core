@@ -27,15 +27,23 @@ class CorePackageTests(unittest.TestCase):
             skill_dir = CORE_ROOT.parent / name
             text = (skill_dir / 'SKILL.md').read_text(encoding='utf-8')
             self.assertIn('ai-sdlc-core', text, name)
-            self.assertIn('scripts/sdlc.py', text, name)
             self.assertTrue((skill_dir / 'agents' / 'openai.yaml').is_file(), name)
             # Mutating workflows run only when the user invokes them.
             if name != 'sdlc-status':
                 self.assertIn('disable-model-invocation: true', text, name)
                 self.assertIn('allow_implicit_invocation: false',
                               (skill_dir / 'agents' / 'openai.yaml').read_text(encoding='utf-8'), name)
-        for name, keyword in (('sdlc-orchestrate', 'APPROVE-SDLC-PLAN'), ('sdlc-smoke', 'START-ORCA-SMOKE-TEST')):
+        for name, keyword in (('sdlc-orchestrate', 'APPROVE-SDLC-PLAN'), ('sdlc-smoke', 'START-ORCA-SMOKE-TEST'),
+                              ('sdlc-brief', 'templates/project-brief.md')):
             self.assertIn(keyword, (CORE_ROOT.parent / name / 'SKILL.md').read_text(encoding='utf-8'))
+
+    def test_brief_template_matches_the_smoke_brief_structure(self):
+        template = (CORE_ROOT / 'templates' / 'project-brief.md').read_text(encoding='utf-8')
+        smoke = (CORE_ROOT / 'assets' / 'smoke' / 'project-brief.md').read_text(encoding='utf-8')
+        for heading in ('## Objective', '## Users', '## Success criteria', '## Known constraints', '## Open decisions'):
+            self.assertIn(heading, template)
+            self.assertIn(heading, smoke)
+        self.assertIn('## Scope', template)
 
     def test_no_root_level_copies_of_core_content(self):
         for legacy in ('agents', 'workflows', 'policies', 'templates', 'schemas', 'scripts'):

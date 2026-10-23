@@ -23,6 +23,7 @@ Humans drive the SDLC with slash commands; the agent runs `sdlc.py` itself. User
 
 | Command | Does |
 |---|---|
+| `/sdlc-brief <idea>` | Interview the user and write `docs/brief.md` from `templates/project-brief.md`, commit it |
 | `/sdlc-setup` | Detect the stack, interview the user, write and validate `.ai-sdlc/project.json`, commit it |
 | `/sdlc-status` | Read-only readiness report and the recommended next command |
 | `/sdlc-task <goal>` | One validated task contract plus a self-contained worker spec (no dispatch) |

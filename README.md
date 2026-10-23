@@ -12,7 +12,7 @@ mọi thay đổi trạng thái Orca do Orchestrator thực hiện sau khi con n
 
 | Lớp | Trách nhiệm | Nằm ở đâu |
 |---|---|---|
-| **AI SDLC Core** | Một phiên bản chuẩn của agents, workflows, policies, templates, schemas, prompt, engine `sdlc.py` | Skill `ai-sdlc-core`, 5 workflow skill, 5 role skill `sdlc-*` (thư mục `skills/`) |
+| **AI SDLC Core** | Một phiên bản chuẩn của agents, workflows, policies, templates, schemas, prompt, engine `sdlc.py` | Skill `ai-sdlc-core`, 6 workflow skill, 5 role skill `sdlc-*` (thư mục `skills/`) |
 | **Orca ADE** | Điều phối Agent: Runs, tasks, supervised workers, Git worktree | Orca runtime + native skill `orca-cli`, `orchestration` |
 | **Repository dự án** | Chỉ cấu hình đặc thù: ngôn ngữ, kiến trúc, lệnh test/lint/build, quy tắc coding, phạm vi chức năng, đường dẫn được ghi/bị bảo vệ, người phê duyệt | `.ai-sdlc/project.json` (+ task contract trong `.ai-sdlc/tasks/`, khối quản lý trong `AGENTS.md`/`CLAUDE.md`) |
 
@@ -28,7 +28,7 @@ orca skills install --skill orca-cli --skill orchestration          # Orca nativ
 npx skills add <git-url-hoac-duong-dan-repo-nay> --skill '*' --global --agent claude-code --agent codex --copy -y
 ```
 
-Lệnh thứ hai cài toàn bộ 11 skill của gói, cú pháp đã kiểm với `skills@1.7.4`; chạy với `--list` để xem trước.
+Lệnh thứ hai cài toàn bộ 12 skill của gói, cú pháp đã kiểm với `skills@1.7.4`; chạy với `--list` để xem trước.
 Nếu không dùng npx, từ bản clone chạy `python skills/ai-sdlc-core/scripts/sdlc.py install` (copy offline vào
 `~/.claude/skills` và `~/.agents/skills`). Cần Python 3.10+ trên máy vì agent dùng nó làm engine.
 
@@ -38,15 +38,17 @@ Mở phiên Claude Code hoặc Codex của repository trong Orca, rồi gõ:
 
 | Slash command | Tác dụng |
 |---|---|
+| `/sdlc-brief <ý tưởng>` | Agent hỏi bạn từng vòng về mục tiêu, người dùng, phạm vi MVP, tiêu chí thành công, ràng buộc; điều chưa chắc ghi thành *Open decisions*; viết `docs/brief.md` theo `templates/project-brief.md`, commit sau khi bạn duyệt |
 | `/sdlc-setup` | Agent dò stack từ repo, phỏng vấn bạn theo từng vòng (câu hỏi đánh số, kèm đề xuất) về kiến trúc, lệnh test, quy tắc coding, phạm vi, người phê duyệt; ghi và validate `.ai-sdlc/project.json`, commit sau khi bạn đồng ý |
 | `/sdlc-status` | Báo cáo chỉ đọc: core, skill, config, Git baseline, Orca, task, Run đang chạy, và lệnh nên dùng tiếp theo |
 | `/sdlc-smoke` | Chứng minh điều phối Orca chạy được: giám sát một worker BA, dừng chờ `START-ORCA-SMOKE-TEST` |
 | `/sdlc-task <mục tiêu>` | Tạo một task contract đã validate và worker spec tự chứa, không dispatch |
 | `/sdlc-orchestrate <mục tiêu hoặc file brief>` | Phiên hiện tại trở thành Orchestrator: lập DAG, dừng chờ `APPROVE-SDLC-PLAN`, rồi dispatch, theo dõi, kiểm chứng worker |
 
-Ví dụ: `/sdlc-orchestrate Thêm đăng nhập bằng email cho API đơn hàng`.
+Ví dụ: `/sdlc-brief Ứng dụng đặt lịch khám cho phòng khám nhỏ`, rồi `/sdlc-orchestrate docs/brief.md`; hoặc với việc nhỏ:
+`/sdlc-orchestrate Thêm đăng nhập bằng email cho API đơn hàng`.
 
-Các workflow có tác dụng thay đổi (`setup`, `task`, `smoke`, `orchestrate`) có `disable-model-invocation: true`, tức
+Các workflow có tác dụng thay đổi (`brief`, `setup`, `task`, `smoke`, `orchestrate`) có `disable-model-invocation: true`, tức
 chỉ chạy khi bạn gọi. `/sdlc-status` thì agent được tự gọi khi bạn hỏi kiểu "AI SDLC đã sẵn sàng chưa?".
 
 Khi setup, `init` chỉ suy luận ngôn ngữ và lệnh **từ bằng chứng** trong repo (`package.json` scripts, lockfile, `go.mod`,
@@ -61,13 +63,16 @@ không đoán. Nội dung `AGENTS.md`/`CLAUDE.md` sẵn có được giữ nguy�
 
 ```mermaid
 flowchart TD
-    A["Một lần mỗi máy:<br/>orca skills install + npx skills add"] --> B["/sdlc-setup<br/>(một lần mỗi repository)"]
+    A["Một lần mỗi máy:<br/>orca skills install + npx skills add"] --> Q{"Đã có tài liệu<br/>mô tả sản phẩm?"}
+    Q -- "Chưa có gì" --> BR["/sdlc-brief + ý tưởng<br/>→ docs/brief.md"]
+    Q -- "Có SRS/brief<br/>(.doc → chuyển sang .md)" --> B
+    BR --> B["/sdlc-setup<br/>(một lần mỗi repository)"]
     B --> C{"/sdlc-status<br/>READY?"}
     C -- "BLOCKED" --> B
     C -- "READY, lần đầu" --> D["/sdlc-smoke<br/>(tuỳ chọn, thử Orca)"]
     D --> G1(["Bạn gửi START-ORCA-SMOKE-TEST"])
     G1 --> E
-    C -- "READY" --> E["/sdlc-orchestrate + mục tiêu"]
+    C -- "READY" --> E["/sdlc-orchestrate + docs/brief.md<br/>hoặc mục tiêu"]
     T["/sdlc-task + mục tiêu<br/>(soạn trước task lẻ)"] -.-> E
     E --> P["Orchestrator lập DAG, task contract, spec"]
     P --> G2(["Bạn duyệt: APPROVE-SDLC-PLAN"])
@@ -83,12 +88,13 @@ flowchart TD
 
 | Thời điểm | Bạn gọi | Agent làm | Bạn cần làm | Kết quả |
 |---|---|---|---|---|
-| Máy mới | (lệnh cài ở mục 1) | – | Chạy 2 lệnh cài | 11 skill + skill native của Orca |
+| Máy mới | (lệnh cài ở mục 1) | – | Chạy 2 lệnh cài | 12 skill + skill native của Orca |
+| Mới có ý tưởng, chưa có tài liệu | `/sdlc-brief <ý tưởng>` | Đọc repo, hỏi từng vòng, viết brief theo template | Trả lời và chốt những gì đã quyết, duyệt brief | `docs/brief.md` (đã commit) làm đầu vào cho discovery |
 | Repository mới | `/sdlc-setup` | Dò stack, hỏi từng vòng, chạy `init`/`validate` | Trả lời câu hỏi, đồng ý commit | `.ai-sdlc/project.json`, khối trong `AGENTS.md`/`CLAUDE.md` |
 | Bất kỳ lúc nào | `/sdlc-status` | `doctor`, liệt kê task, Run, đề xuất upgrade | Đọc kết quả | READY/BLOCKED và lệnh nên dùng tiếp |
 | Lần đầu dùng Orca trên repo | `/sdlc-smoke` | Giám sát 1 worker BA, chấm kết quả | Gửi `START-ORCA-SMOKE-TEST` | Bằng chứng Orca chạy được (ID thật) |
 | Muốn soạn trước một việc nhỏ | `/sdlc-task <mục tiêu>` | Soạn task contract, validate, render spec | Duyệt owner, phạm vi, tiêu chí | `.ai-sdlc/tasks/TASK-NNN.json`, spec trong `.ai-sdlc/runs/specs/` |
-| Có tính năng, bug, mục tiêu cần làm | `/sdlc-orchestrate <mục tiêu>` | Đóng vai Orchestrator: lập kế hoạch rồi dừng | Gửi `APPROVE-SDLC-PLAN`, quyết định ở các gate | Code, tài liệu, kết quả kiểm thử đã kiểm chứng |
+| Có brief/SRS, tính năng, bug cần làm | `/sdlc-orchestrate <docs/brief.md hoặc mục tiêu>` | Đóng vai Orchestrator: lập kế hoạch rồi dừng | Gửi `APPROVE-SDLC-PLAN`, quyết định ở các gate | Code, tài liệu, kết quả kiểm thử đã kiểm chứng |
 | Sau khi cài bản core mới | `/sdlc-status` | Phát hiện pin cũ, chạy `upgrade --dry-run` | Đồng ý upgrade | Pin mới, khối quản lý được làm mới |
 
 Bạn chỉ có hai câu lệnh phê duyệt cố định: `START-ORCA-SMOKE-TEST` cho smoke test và `APPROVE-SDLC-PLAN` cho kế hoạch thật.
@@ -130,7 +136,7 @@ Mọi lệnh nhận `-C <project-dir>` (mặc định thư mục hiện tại).
 | Lệnh | Tác dụng |
 |---|---|
 | `version`, `where [--json]` | Phiên bản và đường dẫn core đã cài (các đường dẫn `agents/...`, `policies/...` trong tài liệu core tính từ đây) |
-| `install` | Copy 11 skill vào thư mục skill của agent (offline) |
+| `install` | Copy 12 skill vào thư mục skill của agent (offline) |
 | `init` | Tạo `.ai-sdlc/project.json`, khối quản lý `AGENTS.md`/`CLAUDE.md`, ignore `.ai-sdlc/runs/` (`--approver ROLE=NAME`, `--dry-run`, `--force`, `--no-detect`, `--no-agent-files`) |
 | `validate [--task F] [--core-only] [--bundled]` | Kiểm tra toàn vẹn core, config dự án (schema + quy tắc) và task contract |
 | `doctor [--offline] [--json]` | Kiểm tra sẵn sàng, chỉ đọc; exit 1 khi có FAIL |
@@ -174,7 +180,7 @@ không còn placeholder `REPLACE`. Protected paths và forbidden actions mặc �
 | `skills/ai-sdlc-core/references/` | Operating contract, handoff, gán role, thiết lập Orca, kích hoạt Orchestrator |
 | `skills/ai-sdlc-core/assets/` | Template prompt/spec, khối `AGENTS.md`/`CLAUDE.md`, brief smoke test |
 | `skills/ai-sdlc-core/scripts/` | Bootstrap CLI `sdlc.py` + gói `sdlc_core` |
-| `skills/sdlc-{setup,status,task,smoke,orchestrate}/` | 5 workflow skill (slash command) + `agents/openai.yaml` cho Codex |
+| `skills/sdlc-{brief,setup,status,task,smoke,orchestrate}/` | 6 workflow skill (slash command) + `agents/openai.yaml` cho Codex |
 | `skills/sdlc-{requirements-analysis,system-design,implementation,code-review,testing}/` | 5 role skill cho worker |
 | `.ai-sdlc/project.json` | Repo này cũng được quản lý bằng chính core (dogfooding) |
 | `examples/` | Config dự án mẫu, task contract mẫu |

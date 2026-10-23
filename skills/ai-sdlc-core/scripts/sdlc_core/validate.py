@@ -14,7 +14,7 @@ CORE_FILES = [
     'assets/prompts/orchestrator-activation.md', 'assets/prompts/smoke-orchestrator.md',
     'assets/prompts/worker-spec.md', 'assets/prompts/smoke-ba-spec.md',
     'assets/project/AGENTS.block.md', 'assets/project/CLAUDE.block.md',
-    'assets/smoke/project-brief.md',
+    'assets/smoke/project-brief.md', 'templates/project-brief.md',
 ]
 
 
