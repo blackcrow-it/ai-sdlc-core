@@ -5,7 +5,7 @@ argument-hint: "What to look at, e.g. \"what needs attention\" or \"#42\""
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 Triage the issues that arrive on this project's tracker: bug reports and feature requests **you did not write**. Task issues (titled `TASK-NNN: ...` or labelled `sdlc`) are already agent-ready by construction; never triage them.
@@ -55,7 +55,7 @@ Query the tracker and present three buckets, oldest first: **unlabelled** (never
 1. **Gather context.** Read the whole issue: body, comments, labels, author, dates. Parse earlier triage notes so you never re-ask resolved questions. Explore the codebase with the `GLOSSARY.md` vocabulary and the ADRs in the area. Then two checks: (a) **redundancy**: search for an existing implementation of the requested behaviour by domain concept, not just the issue's wording, and report where you looked; (b) **prior rejection**: read `.out-of-scope/*.md` and surface any concept that matches.
 2. **Recommend** a category and state with your reasoning, plus a short summary of the relevant code (including whether it already exists). Wait for direction.
 3. **Verify the claim** before any grilling. For a bug, reproduce it from the reporter's steps (call the Skill tool with "sdlc-debugging" and work its Phases 1 and 2 only: a red-capable loop and a minimised repro, no fix). Report: confirmed (with the code path), not reproduced, or insufficient detail (a strong `needs-info` signal). A confirmed repro makes a far stronger task contract.
-4. **Grill if needed.** If the request needs shaping, call the Skill tool twice, for "sdlc-grilling" and "sdlc-domain-modeling", and work it into shape one round at a time, updating `GLOSSARY.md` and ADRs as decisions land.
+4. **Grill if needed.** If the request needs shaping, call the Skill tool twice, for "sdlc-grilling" and "sdlc-domain-modeling", and use the permitted interactive question tool in small independent batches, updating `GLOSSARY.md` and ADRs as actual answers settle decisions.
 5. **Apply the outcome:**
    - `ready-for-agent`: write one or more task contracts per TASK-AUTHORING, with the issue's URL or key in `input_artifacts`, a confirmed repro as the first acceptance criterion's scenario, and `test_seams` for implementation roles. Validate and publish them like any task. Then comment on the source issue `Tracked as TASK-NNN: <title> (<link>)` and label it. The source stays open until its tasks are accepted; the tracker's "Close" recipe closes it then.
    - `ready-for-human`: post a **human brief** comment with the same structure as a task (summary, current and desired behaviour, acceptance criteria, out of scope) plus why it cannot be delegated (judgement call, external access, design decision, manual testing).

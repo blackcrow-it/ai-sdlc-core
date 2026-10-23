@@ -5,7 +5,7 @@ argument-hint: "One line about the idea"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 Write the project brief for the idea the user described. The brief feeds the discovery phase of /sdlc-orchestrate. It records decisions, not designs.
@@ -18,7 +18,9 @@ Write the project brief for the idea the user described. The brief feeds the dis
 
 ## 2. Interview in rounds
 
-Call the Skill tool twice, for "sdlc-grilling" and "sdlc-domain-modeling", and run the interview in their rounds: only questions whose prerequisites are settled, numbered, each with your recommended answer. Domain terms the user settles go into `GLOSSARY.md` as they are resolved. Typical order of the frontier:
+Call the Skill tool twice, for "sdlc-grilling" and "sdlc-domain-modeling", and use the grilling skill's permitted
+interactive question tool, small independent batches and answer tracking. Domain terms the user settles go into
+`GLOSSARY.md` as they are resolved. Typical order of the frontier:
 
 1. **Objective and users:** the problem, who has it, the user roles and what each needs to do.
 2. **Scope:** what the MVP must deliver and what is deferred or out of scope.

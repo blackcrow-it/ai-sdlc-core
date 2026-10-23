@@ -5,10 +5,12 @@ argument-hint: "The plan, idea or change to sharpen"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
-Call the Skill tool twice, for "sdlc-grilling" and "sdlc-domain-modeling", then grill the user about the plan they described.
+Call the Skill tool twice, for "sdlc-grilling" and "sdlc-domain-modeling", then interview the user about the plan
+through the grilling skill's permitted interactive question tool. Follow its batch limits, answer tracking and
+fallback; keep summaries and domain decisions in this session.
 
 Before the first round, read `.ai-sdlc/project.json` if it exists (reply language, `scope`, coding rules, approvers), `GLOSSARY.md` or `GLOSSARY-MAP.md`, the ADRs in `docs/adr/`, `docs/brief.md` and the code the plan touches. Challenge anything that falls outside `scope.in_scope` or inside `scope.out_of_scope`.
 

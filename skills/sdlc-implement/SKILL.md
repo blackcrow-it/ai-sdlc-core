@@ -5,7 +5,7 @@ argument-hint: "TASK-NNN, issue number or Jira key (optional: pick from the fron
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 Carry out **one** task contract in the repository at the current working directory. One task per invocation: never start a sibling task, and clear the context (`/clear`) before the next one. Each contract is self-contained, so the previous task's context is disposable.
@@ -30,7 +30,10 @@ Set the task to `in_progress` with the tracker's "Set status" recipe.
 
 Act as `owner_agent`: call the Skill tool with that role's `primary_skill` from `<CORE>/agents/registry.json` (for example "sdlc-implementation" for a developer role, "sdlc-requirements-analysis" for the Business Analyst) and follow it. Implementation roles build test-first at the contract's `test_seams` with "sdlc-tdd"; a check that fails for an unclear reason goes through "sdlc-debugging".
 
-Questions about requirements or scope go to the user in rounds of the `sdlc-grilling` skill. Anything outside the contract (a needed path outside `allowed_paths`, a new seam, a changed acceptance criterion) is the user's decision: ask, and if they agree, change the contract first (validate, update it in the tracker), then continue.
+Questions about requirements or scope use the `sdlc-grilling` skill's interactive batches and actual-answer tracking.
+Anything outside the contract (a needed path outside `allowed_paths`, a new seam, a changed acceptance criterion)
+is the user's decision: ask through a channel permitted for that decision, and if they agree, change the contract
+first (validate, update it in the tracker), then continue.
 
 ## 4. Verify
 

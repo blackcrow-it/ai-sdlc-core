@@ -3,7 +3,7 @@ name: sdlc-tdd
 description: Test-driven development with a red-green loop, one vertical slice at a time, at pre-agreed test seams. Use when building a feature or fixing a bug test-first, when the user mentions "TDD" or "red-green-refactor", when implementing an SDLC task contract, or when writing integration tests.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 TDD is the **red → green** loop. This skill is the reference that makes the loop produce tests worth keeping: what a good test is, where tests go, the anti-patterns and the rules of the loop. Consult every section before and during the loop, not after.

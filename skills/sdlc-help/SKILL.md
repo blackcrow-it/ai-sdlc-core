@@ -5,7 +5,7 @@ argument-hint: "Your situation, e.g. \"I have an SRS in Word\" or \"tests are fl
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 # AI SDLC help
@@ -55,7 +55,10 @@ Either way the code is built test-first at the contract's test seams (`/sdlc-tdd
 
 Model-invoked references that the skills above (and Orca workers) load on their own. Reach for them directly when the words, not the process, are the problem.
 
-- **`/sdlc-grilling`**: the interview primitive (rounds, the frontier, facts are the agent's job, decisions are yours) behind `/sdlc-grill`, `/sdlc-brief`, `/sdlc-setup`, `/sdlc-task`, `/sdlc-plan` and `/sdlc-triage`.
+- **`/sdlc-grilling`**: the interactive interview primitive behind `/sdlc-grill`, `/sdlc-brief`, `/sdlc-setup`,
+  `/sdlc-task`, `/sdlc-plan` and `/sdlc-triage`: use a permitted question tool, small independent batches and actual
+  submitted answers. It tracks pending/deferred decisions, handles async replies and falls back to chat only when
+  needed. Worker questions still go to the Orchestrator; approval rules stay with the calling workflow.
 - **`/sdlc-domain-modeling`**: sharpen the domain language and keep `GLOSSARY.md` and `docs/adr/` current.
 - **`/sdlc-codebase-design`**: the deep-module vocabulary (module, interface, depth, seam, adapter, leverage, locality) for the shape of a module and the choice of test seams.
 - **`/sdlc-tdd`**: the red-green loop and what makes a test worth keeping.

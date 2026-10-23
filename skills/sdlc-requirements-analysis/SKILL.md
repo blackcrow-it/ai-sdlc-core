@@ -3,7 +3,7 @@ name: sdlc-requirements-analysis
 description: Turn a brief, spec, stakeholder input or an existing SRS into traceable PRD/SRS documents, user stories and measurable acceptance criteria, with verified facts separated from assumptions and open questions routed to their owner. Use for discovery, requirements, UX specs, backlog grooming, release planning and documentation tasks.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 # Requirements analysis
@@ -22,7 +22,7 @@ Primary skill of the product, analysis, UX, planning and documentation roles. In
    - **user stories** as a long numbered list, `As a <actor>, I want <capability>, so that <benefit>`, covering every aspect of the scope;
    - **acceptance criteria** that are observable and independently checkable, Given/When/Then where it helps.
 4. **Trace everything.** Give each requirement an ID and map it to its source and to the acceptance criteria (and later the tests) that cover it. A requirement without a source is an assumption; an acceptance criterion without a requirement is scope creep.
-5. **Resolve ambiguity with the owner, never by guessing.** With the user in the session, call the Skill tool with "sdlc-grilling" and ask in rounds. In an Orca worker, send the questions to the Orchestrator or list them as open questions with their owner (usually `product_owner`) and what they block. When a business rule only becomes clear by trying it, propose a prototype (the `sdlc-prototype` skill) instead of prose.
+5. **Resolve ambiguity with the owner, never by guessing.** With the user in the session, call the Skill tool with "sdlc-grilling" and use its permitted interactive question tool, small batches and answer tracking. In an Orca worker, send the questions to the Orchestrator or list them as open questions with their owner (usually `product_owner`) and what they block. When a business rule only becomes clear by trying it, propose a prototype (the `sdlc-prototype` skill) instead of prose.
 6. **Keep the domain model current.** When a term is resolved or an overloaded word is split, call the Skill tool with "sdlc-domain-modeling" and update `GLOSSARY.md`, if it is inside the task's `allowed_paths` (otherwise propose the entry in the handoff).
 7. **Reconcile the baseline.** Update affected PRD/SRS sections, stable requirement IDs, the canonical coverage
    matrix and revision/review history within this task's scope. Keep superseded IDs with links and earlier

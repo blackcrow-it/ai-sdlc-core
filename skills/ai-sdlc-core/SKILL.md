@@ -3,7 +3,7 @@ name: ai-sdlc-core
 description: AI SDLC Core - reusable multi-agent SDLC package (14 roles, 9 workflows, policies, templates, schemas) with a Bootstrap CLI. Use when setting up AI SDLC in a repository (".ai-sdlc/project.json", "init sdlc"), validating that config, creating task contracts or Orca worker specs, or activating/acting as the SDLC Orchestrator or an SDLC worker role in Orca ADE.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 # AI SDLC Core
@@ -41,7 +41,8 @@ Humans drive the SDLC with slash commands; the agent runs `sdlc.py` itself. User
 When a request matches one of these but the user did not invoke it, suggest the command instead of improvising.
 
 ## Discipline skills (model-invoked, shared by every role)
-`sdlc-grilling` (interview in rounds), `sdlc-domain-modeling` (`GLOSSARY.md`, ADRs), `sdlc-codebase-design` (deep
+`sdlc-grilling` (interactive question tools, small batches, tracked decisions and host-aware fallback),
+`sdlc-domain-modeling` (`GLOSSARY.md`, ADRs), `sdlc-codebase-design` (deep
 modules, seams), `sdlc-tdd` (red-green at agreed test seams), `sdlc-debugging` (feedback-loop-first diagnosis),
 `sdlc-research` (cited primary sources), `sdlc-prototype` (throwaway answer to one design question). Skills reach
 each other only by calling the Skill tool with a model-invoked skill; `sdlc.py validate --bundled` enforces it.

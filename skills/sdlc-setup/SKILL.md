@@ -5,7 +5,7 @@ argument-hint: "Optional: one line about the project"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 Set up AI SDLC Core in the repository at the current working directory. You run every command; never ask the user to type one.
@@ -25,7 +25,9 @@ From this, prepare a recommended answer for every question in step 3. Facts are 
 
 ## 3. Interview in rounds
 
-Call the Skill tool with "sdlc-grilling" and ask the open decisions in its rounds: numbered questions, each with your recommended answer, then wait. Skip any question your exploration already settled beyond doubt and say so. Ask follow-ups in later rounds only when an answer opens new questions. Cover:
+Call the Skill tool with "sdlc-grilling" and use its permitted interactive question tool and small independent
+batches. Reuse facts/decisions already established; track actual answers and defer dependent questions until their
+prerequisites are settled. Tool/mode restrictions and fallback follow that skill, not a Markdown question format. Cover:
 
 1. Project id and name, description, reply language (default Vietnamese).
 2. Languages, frameworks, package manager, runtimes.

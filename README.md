@@ -138,13 +138,21 @@ thể gọi trực tiếp.
 
 | Skill | Làm gì | Được dùng bởi |
 |---|---|---|
-| `sdlc-grilling` | Phỏng vấn theo **vòng**: hỏi toàn bộ "frontier" (câu hỏi đã đủ tiền đề), đánh số, kèm đề xuất; sự thật agent tự tra, quyết định thuộc về bạn; trong worker Orca thì chuyển câu hỏi cho Orchestrator | brief, setup, grill, task, plan, triage, requirements |
+| `sdlc-grilling` | Phỏng vấn tương tác bằng **question tool**: nhóm 1–3 câu độc lập, lựa chọn có đề xuất hoặc nhập tự do, ghi nhận câu trả lời thực; theo dõi câu đang chờ/chưa chốt; trong worker chuyển cho Orchestrator | brief, setup, grill, task, plan, triage, requirements |
 | `sdlc-domain-modeling` | Thách thức thuật ngữ mơ hồ, kịch bản biên, cập nhật `GLOSSARY.md` ngay khi chốt; ADR chỉ khi khó đảo ngược + gây bất ngờ + là đánh đổi thật | grill, brief, system design, triage |
 | `sdlc-codebase-design` | Từ vựng deep module (module, interface, depth, seam, adapter, leverage, locality), deletion test, "design it twice" | system design, tdd, plan |
 | `sdlc-tdd` | Đỏ → xanh từng lát dọc, chỉ test tại **test seam đã thống nhất** (trường `test_seams` của task), tránh test dính implementation và test lặp lại logic | implementation, testing |
 | `sdlc-debugging` | 6 pha: dựng vòng phản hồi **đỏ được** trước khi đoán, thu nhỏ repro, 3–5 giả thuyết kiểm chứng được, đo đạc, sửa kèm regression test, dọn dẹp | implementation, testing, triage |
 | `sdlc-research` | Agent nền đọc nguồn gốc (tài liệu chính thức, mã nguồn, spec), ghi file Markdown có trích dẫn | grill, architecture |
 | `sdlc-prototype` | Prototype bỏ đi trả lời một câu hỏi: file HTML cho logic/state, hoặc nhiều biến thể UI trên một route | grill, design, requirements |
+
+`sdlc-grilling` chọn tool hỏi đáp thực sự được phép dùng trong phiên (ví dụ `AskUserQuestion`,
+`request_user_input` hoặc `request_user_input_async`), theo schema/giới hạn của host. Tool async gửi câu hỏi trước,
+nhận câu trả lời sau; agent chỉ tiếp tục phần việc độc lập trong lúc chờ. Lựa chọn mặc định, câu trả lời rỗng và
+im lặng không được xem là đồng ý. Câu phụ thuộc chỉ hỏi sau khi tiền đề được chốt; câu trả lời tự do hoặc sửa đổi
+được cập nhật vào các quyết định liên quan. Nếu thiếu tool phù hợp, tool bị giới hạn mode/mục đích, hoặc không
+nhập được giá trị cần hỏi, agent hỏi qua chat cho phần đó. Các approval triển khai/publish vẫn theo workflow;
+chọn một phương án phỏng vấn không thay cho `APPROVE-SDLC-PLAN` hay `START-ORCA-SMOKE-TEST`.
 
 Các role skill mà worker dùng cũng được siết lại:
 
@@ -340,7 +348,7 @@ python skills/ai-sdlc-core/scripts/sdlc.py doctor --offline
 
 ## Phiên bản (Versioning)
 
-Bản hiện tại là **0.1.1**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
+Bản hiện tại là **0.1.2**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
 `metadata.version` của mọi `SKILL.md` trong gói; `sdlc.py validate --bundled` buộc các giá trị này khớp nhau.
 Mỗi dự án pin `core_version` trong `.ai-sdlc/project.json`. Quy tắc tương thích theo semver:
 
@@ -361,6 +369,13 @@ hoặc nghiệm thu task cũ, bổ sung assessment/updates, review thay đổi s
 `docs-check` sẽ chặn contract chưa đánh giá. Draft mới chứa placeholder bắt buộc thay bằng quyết định thật.
 Không tự sửa config, baseline hay approval của project khi nâng cấp. Cài bản skill mới trước khi dùng luồng này;
 `sdlc.py upgrade` chỉ cập nhật pin/managed blocks khi được người dùng cho phép.
+
+### Nâng cấp 0.1.1 → 0.1.2
+
+`sdlc-grilling` chuyển sang phỏng vấn tương tác bằng question tool phù hợp với host. Các skill gọi nó dùng cùng
+cơ chế batch/câu trả lời, thay mẫu Markdown cũ; chat là fallback theo khả năng của từng câu hỏi. Không thêm tool
+runtime vào Bootstrap CLI, không đổi schema config/task, không tự bật mode hay thay quyền phê duyệt. Cài lại gói
+skill `0.1.2` để nhận hành vi mới; project pin cùng dòng `0.1.x` vẫn tương thích.
 
 ## Giới hạn quan trọng
 

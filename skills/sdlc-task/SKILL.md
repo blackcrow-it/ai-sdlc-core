@@ -5,7 +5,7 @@ argument-hint: "What the task should achieve"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 Write **one** task contract for the work the user described. Do not create Orca Runs, tasks or workers. For a breakdown into several tasks, use /sdlc-plan instead.
@@ -16,7 +16,7 @@ Write **one** task contract for the work the user described. Do not create Orca 
    Read core `references/DOCUMENTATION-CONTINUITY.md`; assess the documentation map and affected requirements,
    contracts and guides. Include `documentation` in this task and its owned updates in scope/deliverables/criteria.
    Missing baselines or larger documentation work may require prerequisite tasks and /sdlc-plan.
-4. Draft the contract per TASK-AUTHORING: owner and a different reviewer, narrow `allowed_paths`, observable acceptance criteria, `test_seams` for implementation roles, required checks from the project commands, dependencies on existing task IDs only, deliverables, risk and priority. Review it with the user in rounds of the `sdlc-grilling` skill (call the Skill tool with "sdlc-grilling") until they approve.
+4. Draft the contract per TASK-AUTHORING: owner and a different reviewer, narrow `allowed_paths`, observable acceptance criteria, `test_seams` for implementation roles, required checks from the project commands, dependencies on existing task IDs only, deliverables, risk and priority. Call the Skill tool with "sdlc-grilling" for interactive review in small independent batches; request the contract/publication approval through the host/workflow's permitted channel.
 5. Publish per TASK-AUTHORING: next free `TASK-NNN`, `SDLC task new`, replace every `REPLACE` placeholder, `SDLC validate --task <file>` until it passes, then publish to the tracker and verify the round trip (on a remote tracker, confirm with the user before the issue is created; on the local tracker the file is the record, commit it with `Add TASK-NNN: <title>`).
 6. Run `SDLC spec --task <file-or-fetched-issue-body>` and give the user the task reference (file path, issue number or Jira key), the spec path and a two-line summary of scope and checks.
 

@@ -81,7 +81,8 @@ Wording rules:
 ## Review with the user
 
 Present the draft (one task or the breakdown) as a numbered list: title, owner → reviewer, blocked by, what it
-delivers, test seams. Use the round format of the `sdlc-grilling` skill and ask:
+delivers, test seams. Keep that draft as review context, then use the permitted interactive question tool and
+small independent batches from the `sdlc-grilling` skill to ask:
 
 - Does the granularity feel right (too coarse, too fine)?
 - Does each dependency genuinely gate its task?
@@ -89,7 +90,8 @@ delivers, test seams. Use the round format of the `sdlc-grilling` skill and ask:
 - Does every affected canonical document have an owner, scope and verification? Are baseline updates and final
   traceability reconciliation correctly sequenced, including shared document writers?
 
-Iterate until the user approves. Without approval nothing is published.
+Iterate until the user approves. Interview answers do not substitute for publication approval: use the channel
+permitted by the host/calling workflow for that approval. Without approval nothing is published.
 
 ## Publish
 

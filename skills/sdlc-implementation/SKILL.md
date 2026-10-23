@@ -3,7 +3,7 @@ name: sdlc-implementation
 description: Implement exactly one SDLC task contract in its worktree or task branch - test-first at the contract's test seams, inside allowed_paths, with the configured checks, a scope check and a review-ready handoff. Use when a frontend, backend or DevOps task is assigned, during feature development and bug fixes.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.1"
+  version: "0.1.2"
 ---
 
 # Implementation
