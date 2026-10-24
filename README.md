@@ -442,6 +442,16 @@ project pin cùng dòng `0.1.x` vẫn tương thích. Cài lại core cùng toà
 activation/worker specs để có các reference mới; không tự sửa config hay thay đổi trạng thái task đang chạy.
 Các năng lực, phương án và ví dụ trong profile chỉ áp dụng theo scope/requirement đã được giao.
 
+### Nâng cấp 0.1.4 → 0.1.5
+
+Thêm `opencode` vào `orca.agent`, `orca.role_agents`, `init --agent`/`--role-agent` và `activate --agent`.
+Schema vẫn là `0.1`; cấu hình cũ và quy tắc ưu tiên theo role giữ nguyên. Cài lại toàn bộ bundled skills
+`0.1.5` vào các thư mục provider đang dùng, rồi chạy `sdlc.py upgrade` trong dự án cần nâng pin.
+Ví dụ xem trước: `sdlc.py init --dry-run --agent codex --role-agent backend-developer=opencode`.
+Hỗ trợ cấu hình/render được kiểm chứng bằng `tests/test_agent_routing.py`; không đồng nghĩa đã kiểm chứng
+worker OpenCode trong Orca. Trước dispatch, xác minh agent ID, xác thực, skills, tools và lifecycle trên
+execution host theo [ROLE-ASSIGNMENT.md](skills/ai-sdlc-core/references/ROLE-ASSIGNMENT.md).
+
 ## Giới hạn quan trọng
 
 - Git worktree tách nhánh mã nguồn, **không cô lập quyền hệ điều hành/mạng/secrets**.
@@ -462,13 +472,3 @@ Dex Horthy (HumanLayer). Xem [THIRD_PARTY_NOTICES.md](skills/ai-sdlc-core/THIRD_
 Các role profile tham khảo và chuyển thể chọn lọc từ
 [msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents/tree/4e3ac3ca6604c75113f52c695dbddcc7af928b46)
 (MIT, copyright 2025 AgentLand Contributors). Bản quyền và giấy phép đầy đủ nằm trong cùng third-party notice.
-
-### Nâng cấp 0.1.4 → 0.1.5
-
-Thêm `opencode` vào `orca.agent`, `orca.role_agents`, `init --agent`/`--role-agent` và `activate --agent`.
-Schema vẫn là `0.1`; cấu hình cũ và quy tắc ưu tiên theo role giữ nguyên. Cài lại toàn bộ bundled skills
-`0.1.5` vào các thư mục provider đang dùng, rồi chạy `sdlc.py upgrade` trong dự án cần nâng pin.
-Ví dụ xem trước: `sdlc.py init --dry-run --agent codex --role-agent backend-developer=opencode`.
-Hỗ trợ cấu hình/render được kiểm chứng bằng `tests/test_agent_routing.py`; không đồng nghĩa đã kiểm chứng
-worker OpenCode trong Orca. Trước dispatch, xác minh agent ID, xác thực, skills, tools và lifecycle trên
-execution host theo [ROLE-ASSIGNMENT.md](skills/ai-sdlc-core/references/ROLE-ASSIGNMENT.md).

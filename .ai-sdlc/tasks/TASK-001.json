@@ -4,7 +4,7 @@
   "title": "Add OpenCode CLI routing support and compatible upgrade guidance",
   "owner_agent": "devops-engineer",
   "reviewer_agent": "code-reviewer",
-  "status": "in_progress",
+  "status": "submitted_for_review",
   "risk_level": "medium",
   "priority": "medium",
   "dependencies": [],
@@ -98,5 +98,7 @@
     "skills/ai-sdlc-core/references/ROLE-ASSIGNMENT.md"
   ],
   "orca_run_id": null,
-  "evidence_paths": []
+  "evidence_paths": [
+    ".ai-sdlc/runs/TASK-001-handoff.md"
+  ]
 }
