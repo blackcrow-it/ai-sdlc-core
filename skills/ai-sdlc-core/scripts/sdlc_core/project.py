@@ -10,7 +10,7 @@ from .core import compat_error
 from .validate import bad_relative_path
 
 COMMAND_KEYS = ('install', 'build', 'lint', 'typecheck', 'test', 'e2e', 'security')
-ORCA_AGENTS = ('claude', 'codex', 'antigravity')
+ORCA_AGENTS = ('claude', 'codex', 'antigravity', 'opencode')
 BLOCK_BEGIN = '<!-- ai-sdlc-core:begin -->'
 BLOCK_END = '<!-- ai-sdlc-core:end -->'
 APPROVER_ROLES = ('product_owner', 'tech_lead', 'security_owner', 'release_owner')

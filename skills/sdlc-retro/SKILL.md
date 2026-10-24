@@ -5,7 +5,7 @@ argument-hint: "Optional: which session, Run or task to look back on"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.4"
+  version: "0.1.5"
 ---
 
 Run a **retrospective**: suggest improvements to the agents' **environment** so future sessions and Runs go better. The subject is the environment, not the code that was written.

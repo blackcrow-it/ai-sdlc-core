@@ -5,7 +5,7 @@ argument-hint: "Optional: one line about the project"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.4"
+  version: "0.1.5"
 ---
 
 Set up AI SDLC Core in the repository at the current working directory. You run every command; never ask the user to type one.
@@ -41,7 +41,7 @@ prerequisites are settled. Tool/mode restrictions and fallback follow that skill
 6. Functional scope: in scope and out of scope.
 7. Write ceiling (`allowed_paths`) and extra protected paths. Core protections (`.ai-sdlc/project.json`, CI workflows, `.env*`, keys, secrets) always apply.
 8. Human approvers: product_owner, tech_lead, security_owner, release_owner. Use real names only; an empty role keeps its gate blocked.
-9. Phases/roles to enable (default: all), then the default worker CLI (`claude`, `codex` or `antigravity`).
+9. Phases/roles to enable (default: all), then the default worker CLI (`claude`, `codex`, `antigravity` or `opencode`).
    Ask whether all enabled roles should inherit it or the user wants assignments by work type. With assignments,
    use small interactive batches to select a CLI for each requested role; related roles may share one choice when
    the prompt names all affected roles. Cover requirements/product, architecture/data, UI/frontend, backend,

@@ -321,7 +321,7 @@ Mọi lệnh nhận `-C <project-dir>` (mặc định thư mục hiện tại).
 | `spec --task F` | Render worker spec tự chứa (role, policy, cấu hình dự án, phạm vi, test seam, lệnh scope check, checks) vào `.ai-sdlc/runs/specs/` |
 | `scope (--task F \| --allowed P ...) [--base REF]` | Exit 1 khi có file đổi nằm ngoài phạm vi task hoặc chạm protected path; base mặc định là merge-base với nhánh mặc định |
 | `docs-check --task F [--base REF]` | Kiểm tra assessment, file tài liệu cam kết cập nhật và requirement ID; cần review nội dung riêng |
-| `activate [--brief F] [--smoke] [--stdout] [--agent claude\|codex\|antigravity]` | Render prompt kích hoạt Orchestrator; `--agent` chỉ thay CLI mặc định của lần chạy, role đã gán riêng vẫn ưu tiên |
+| `activate [--brief F] [--smoke] [--stdout] [--agent claude\|codex\|antigravity\|opencode]` | Render prompt kích hoạt Orchestrator; `--agent` chỉ thay CLI mặc định của lần chạy, role đã gán riêng vẫn ưu tiên |
 | `smoke spec\|check` | Spec smoke test BA / kiểm tra tĩnh output |
 | `upgrade [--dry-run]` | Chuyển `core_version` của dự án lên core đã cài nếu tương thích, làm mới khối quản lý |
 
@@ -341,7 +341,7 @@ Schema: [`project.schema.json`](skills/ai-sdlc-core/schemas/project.schema.json)
 | `scope` | `in_scope`/`out_of_scope` chức năng, `allowed_paths` (trần ghi), `protected_paths`, `forbidden_actions` bổ sung |
 | `sdlc` | Phase/role được bật, người phê duyệt, retry mặc định, môi trường release |
 | `tracker` | Nơi duy nhất lưu task: `local`, `github`, `gitlab`, `jira`, `other`; `project`, `notes`; `triage_labels` (tuỳ chọn) |
-| `orca` | CLI mặc định `agent` (`claude`/`codex`/`antigravity`), map tùy chọn `role_agents`, chiến lược worktree, số worker song song |
+| `orca` | CLI mặc định `agent` (`claude`/`codex`/`antigravity`/`opencode`), map tùy chọn `role_agents`, chiến lược worktree, số worker song song |
 | `extra_policies` | Policy riêng của dự án (chỉ bổ sung ràng buộc) |
 
 Khi chạy `/sdlc-setup`, chọn CLI mặc định rồi chọn dùng chung hay gán riêng theo công việc. Các nhóm công việc
@@ -397,7 +397,7 @@ python skills/ai-sdlc-core/scripts/sdlc.py doctor --offline
 
 ## Phiên bản (Versioning)
 
-Bản hiện tại là **0.1.4**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
+Bản hiện tại là **0.1.5**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
 `metadata.version` của mọi `SKILL.md` trong gói; `sdlc.py validate --bundled` buộc các giá trị này khớp nhau.
 Mỗi dự án pin `core_version` trong `.ai-sdlc/project.json`. Quy tắc tương thích theo semver:
 
@@ -462,3 +462,13 @@ Dex Horthy (HumanLayer). Xem [THIRD_PARTY_NOTICES.md](skills/ai-sdlc-core/THIRD_
 Các role profile tham khảo và chuyển thể chọn lọc từ
 [msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents/tree/4e3ac3ca6604c75113f52c695dbddcc7af928b46)
 (MIT, copyright 2025 AgentLand Contributors). Bản quyền và giấy phép đầy đủ nằm trong cùng third-party notice.
+
+### Nâng cấp 0.1.4 → 0.1.5
+
+Thêm `opencode` vào `orca.agent`, `orca.role_agents`, `init --agent`/`--role-agent` và `activate --agent`.
+Schema vẫn là `0.1`; cấu hình cũ và quy tắc ưu tiên theo role giữ nguyên. Cài lại toàn bộ bundled skills
+`0.1.5` vào các thư mục provider đang dùng, rồi chạy `sdlc.py upgrade` trong dự án cần nâng pin.
+Ví dụ xem trước: `sdlc.py init --dry-run --agent codex --role-agent backend-developer=opencode`.
+Hỗ trợ cấu hình/render được kiểm chứng bằng `tests/test_agent_routing.py`; không đồng nghĩa đã kiểm chứng
+worker OpenCode trong Orca. Trước dispatch, xác minh agent ID, xác thực, skills, tools và lifecycle trên
+execution host theo [ROLE-ASSIGNMENT.md](skills/ai-sdlc-core/references/ROLE-ASSIGNMENT.md).

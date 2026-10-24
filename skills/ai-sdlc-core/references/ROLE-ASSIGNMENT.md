@@ -13,7 +13,7 @@ Một role ≠ một tiến trình cố định. Cùng một provider CLI có th
 
 ## Chọn CLI theo công việc
 
-`orca.agent` là CLI mặc định (`claude`, `codex` hoặc `antigravity`). `orca.role_agents` là map tùy chọn từ
+`orca.agent` là CLI mặc định (`claude`, `codex`, `antigravity` hoặc `opencode`). `orca.role_agents` là map tùy chọn từ
 role ID đang bật sang CLI; role không có entry kế thừa mặc định. Ví dụ:
 
 ```json
@@ -41,6 +41,13 @@ ghi đè role đã chọn riêng. Smoke dùng role `business-analyst`. Spec hi�
 nếu dùng mặc định tạm thời khi activate, đối chiếu lại các role kế thừa trước dispatch, không sửa role override.
 CLI render chỉ tạo văn bản; Orca không tự đọc map. Orchestrator truyền CLI đã phân giải vào
 `worker-start --agent <id>` theo guide đúng phiên bản và ghi CLI thực tế cùng Task/Dispatch ID trong evidence.
+
+Với OpenCode, dùng `--agent opencode` hoặc `--role-agent backend-developer=opencode` khi init; validation
+chấp nhận CLI này từ core 0.1.5. Đây là hỗ trợ cấu hình và render, không chứng minh Orca trên execution host
+đã tích hợp đúng phiên bản OpenCode. Kiểm tra agent ID Orca thực sự hỗ trợ, xác thực, skill discovery, công cụ
+và lifecycle trước dispatch; nếu host dùng ID khác hoặc chưa hỗ trợ, báo blocker thay vì tự đổi ID/CLI.
+Model/effort vẫn do cấu hình provider và policy dự án quyết định. Chỉ truyền flag được guide/CLI trên host
+xác nhận hỗ trợ cho OpenCode; generic launch help không đủ để chứng minh khả năng chọn model của provider.
 
 Trước khi trình plan và ngay trước dispatch, kiểm tra trên **execution host**: CLI đã tích hợp và được bật trong
 Orca, xác thực sẵn sàng, đọc được core/role skills, có tools và hỗ trợ lifecycle orchestration cần cho task.

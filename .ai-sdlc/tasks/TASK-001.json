@@ -1,0 +1,102 @@
+{
+  "task_id": "TASK-001",
+  "project_id": "PROJECT-AI-SDLC-CORE",
+  "title": "Add OpenCode CLI routing support and compatible upgrade guidance",
+  "owner_agent": "devops-engineer",
+  "reviewer_agent": "code-reviewer",
+  "status": "in_progress",
+  "risk_level": "medium",
+  "priority": "medium",
+  "dependencies": [],
+  "scope": {
+    "allowed_paths": [
+      "skills/ai-sdlc-core/scripts/**",
+      "skills/ai-sdlc-core/schemas/project.schema.json",
+      "skills/ai-sdlc-core/references/ROLE-ASSIGNMENT.md",
+      "tests/test_agent_routing.py",
+      "README.md",
+      ".ai-sdlc/tasks/TASK-001.json",
+      "skills/ai-sdlc-core/SKILL.md",
+      "skills/sdlc-brief/SKILL.md",
+      "skills/sdlc-code-review/SKILL.md",
+      "skills/sdlc-codebase-design/SKILL.md",
+      "skills/sdlc-debugging/SKILL.md",
+      "skills/sdlc-domain-modeling/SKILL.md",
+      "skills/sdlc-grill/SKILL.md",
+      "skills/sdlc-grilling/SKILL.md",
+      "skills/sdlc-help/SKILL.md",
+      "skills/sdlc-implement/SKILL.md",
+      "skills/sdlc-implementation/SKILL.md",
+      "skills/sdlc-orchestrate/SKILL.md",
+      "skills/sdlc-plan/SKILL.md",
+      "skills/sdlc-prototype/SKILL.md",
+      "skills/sdlc-requirements-analysis/SKILL.md",
+      "skills/sdlc-research/SKILL.md",
+      "skills/sdlc-retro/SKILL.md",
+      "skills/sdlc-setup/SKILL.md",
+      "skills/sdlc-smoke/SKILL.md",
+      "skills/sdlc-spec/SKILL.md",
+      "skills/sdlc-status/SKILL.md",
+      "skills/sdlc-system-design/SKILL.md",
+      "skills/sdlc-task/SKILL.md",
+      "skills/sdlc-tdd/SKILL.md",
+      "skills/sdlc-testing/SKILL.md",
+      "skills/sdlc-triage/SKILL.md"
+    ],
+    "forbidden_actions": [
+      "deploy_production",
+      "edit_secrets",
+      "merge_protected_branch",
+      "force_push",
+      "destructive_migration",
+      "delete_data",
+      "disable_ci_or_branch_protection"
+    ]
+  },
+  "acceptance_criteria": [
+    "init accepts opencode as the default CLI and as a per-role override, and validate accepts the saved configuration.",
+    "activate accepts an OpenCode default override without changing per-role routes or project configuration.",
+    "Worker and smoke prompts resolve OpenCode owner and reviewer routes independently while legacy routes and invalid-agent rejection remain unchanged.",
+    "All bundled skill versions are 0.1.5; setup, routing and README document OpenCode and execution-host readiness checks without claiming a live worker ran."
+  ],
+  "test_seams": [
+    "Bootstrap CLI init, validate and activate plus rendered worker/smoke prompts; tests do not start real agents or mutate Orca."
+  ],
+  "documentation": {
+    "assessment": "CLI routing expands to OpenCode. Update README and canonical routing/setup instructions. No application requirements, API/data contracts, UI, architecture or release deployment change. Requirement IDs are not applicable to process configuration. The user explicitly requested core extension on 2026-10-24, authorizing the required protected core.json version bump as a maintenance exception; scope must still report that protected path rather than bypass it. Consumer project routing and installation are applied under the same direct user request.",
+    "updates": [
+      {
+        "path": "README.md",
+        "change": "Document OpenCode CLI selection and compatible 0.1.5 upgrade.",
+        "requirement_ids": []
+      },
+      {
+        "path": "skills/ai-sdlc-core/references/ROLE-ASSIGNMENT.md",
+        "change": "Document OpenCode routing with provider-specific launch and readiness limits.",
+        "requirement_ids": []
+      },
+      {
+        "path": "skills/sdlc-setup/SKILL.md",
+        "change": "Offer OpenCode as a default or per-role CLI.",
+        "requirement_ids": []
+      }
+    ]
+  },
+  "required_checks": [
+    "python skills/ai-sdlc-core/scripts/sdlc.py validate --bundled --task examples/task-auth.json",
+    "python -m unittest discover -s tests -v"
+  ],
+  "deliverables": [
+    "OpenCode CLI and schema support",
+    "Regression tests",
+    "Core 0.1.5 and upgrade documentation"
+  ],
+  "max_attempts": 2,
+  "human_approval_required": true,
+  "input_artifacts": [
+    "README.md",
+    "skills/ai-sdlc-core/references/ROLE-ASSIGNMENT.md"
+  ],
+  "orca_run_id": null,
+  "evidence_paths": []
+}

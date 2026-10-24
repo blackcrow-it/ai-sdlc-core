@@ -5,7 +5,7 @@ argument-hint: "Objective text, or path to a brief file"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.4"
+  version: "0.1.5"
 ---
 
 Become the supervised SDLC Orchestrator for the repository at the current working directory, in this session. Nothing needs to be copied into another session.

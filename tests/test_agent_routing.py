@@ -108,6 +108,49 @@ class AgentRoutingTests(unittest.TestCase):
             self.assertEqual(code, 0, prompt)
             self.assertIn('--agent codex', prompt)
 
+    def test_init_and_validate_accept_opencode_default_and_role_override(self):
+        for default, mapping in [('opencode', 'backend-developer=codex'),
+                                 ('codex', 'backend-developer=opencode')]:
+            with self.subTest(default=default), tempfile.TemporaryDirectory() as directory:
+                code, out = self.cli(directory, 'init', '--no-detect',
+                                     '--test-cmd', 'python -m unittest', '--allowed-path', 'src/**',
+                                     '--language', 'python',
+                                     '--agent', default, '--role-agent', mapping)
+                self.assertEqual(code, 0, out)
+                config = load(Path(directory) / '.ai-sdlc/project.json')
+                self.assertEqual(config['orca']['agent'], default)
+                self.assertEqual(config['orca']['role_agents']['backend-developer'], mapping.split('=')[1])
+                code, out = self.cli(directory, 'validate')
+                self.assertEqual(code, 0, out)
+
+    def test_opencode_worker_and_reviewer_routes_render_independently(self):
+        for owner, reviewer in [('opencode', 'antigravity'), ('codex', 'opencode')]:
+            with self.subTest(owner=owner, reviewer=reviewer):
+                self.config['orca']['role_agents'] = {
+                    'backend-developer': owner, 'code-reviewer': reviewer}
+                self.assertEqual(validate_config(self.config, CORE)[0], [])
+                spec = build_worker_spec(CORE, self.config, example_task())
+                self.assertIn(f'Owner CLI: `{owner}`; reviewer CLI: `{reviewer}`', spec)
+
+    def test_activate_opencode_override_preserves_config_and_explicit_role_routes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / '.ai-sdlc/project.json'
+            path.parent.mkdir()
+            self.config['orca']['role_agents'] = {'business-analyst': 'claude'}
+            path.write_text(json.dumps(self.config), encoding='utf-8')
+            original = path.read_bytes()
+            code, prompt = self.cli(directory, 'activate', '--smoke', '--offline', '--stdout',
+                                    '--agent', 'opencode')
+            self.assertEqual(code, 0, prompt)
+            self.assertIn('--agent claude', prompt)
+            self.assertEqual(path.read_bytes(), original)
+            self.config['orca'].pop('role_agents')
+            path.write_text(json.dumps(self.config), encoding='utf-8')
+            code, prompt = self.cli(directory, 'activate', '--smoke', '--offline', '--stdout',
+                                    '--agent', 'opencode')
+            self.assertEqual(code, 0, prompt)
+            self.assertIn('--agent opencode', prompt)
+
 
 if __name__ == '__main__':
     unittest.main()
