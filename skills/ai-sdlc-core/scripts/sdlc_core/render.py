@@ -9,6 +9,7 @@ from .validate import CONTRACT_BEGIN, CONTRACT_END, effective_forbidden_actions,
 
 PLACEHOLDER_RE = re.compile(r'\{\{([a-z_]+)\}\}')
 POLICIES = ('policies/permissions.md', 'policies/approval-rules.md', 'policies/quality-gates.md')
+UI_ROLES = ('ui-ux-designer', 'frontend-developer')  # receive references/DESIGN-TOOLS.md
 SMOKE_HEADINGS = {
     'requirements': ['# Authentication Requirements', '## Scope', '## User Stories',
                      '## Functional Requirements', '## Non-functional Requirements',
@@ -122,6 +123,8 @@ def build_worker_spec(core, config, task):
                             'references/ROLE-PROFILE-CONTRACT.md']
     for phase in core.phases_owned_by(role['id']):
         core_refs += phase['required_template_paths']
+    if role['id'] in UI_ROLES:
+        core_refs.append('references/DESIGN-TOOLS.md')
     skill = role['primary_skill']
     values = {
         'task_id': task['task_id'], 'title': task['title'], 'core_version': core.version,
@@ -173,7 +176,8 @@ def _activation_values(core, config, agent):
     reads = ['references/OPERATING-CONTRACT.md', 'agents/orchestrator.md', 'agents/registry.json',
              'workflows/manifest.json', *POLICIES, 'references/HANDOFF.md',
              'references/ROLE-ASSIGNMENT.md', 'references/ORCHESTRATOR-ACTIVATION.md',
-             'references/DOCUMENTATION-CONTINUITY.md', 'references/ROLE-PROFILE-CONTRACT.md', tracker_doc(config)]
+             'references/DOCUMENTATION-CONTINUITY.md', 'references/ROLE-PROFILE-CONTRACT.md',
+             'references/DESIGN-TOOLS.md', tracker_doc(config)]
     return {
         'core_version': core.version, 'core_root': core.root.as_posix(),
         'sdlc': f'python "{core.script}"',

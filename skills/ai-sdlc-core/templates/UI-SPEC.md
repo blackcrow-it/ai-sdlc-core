@@ -3,6 +3,8 @@
 - **Project/feature:**
 - **Requirement references:**
 - **Design artifact path or URL (must actually exist):**
+- **Stitch source (if used):** project ID, screen IDs, revision/date, `DESIGN.md` path
+- **Stitch status:** verified / unverified (blocker and owner) / declined
 
 ## Personas and user journeys
 ## Navigation and screen inventory

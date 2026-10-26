@@ -19,7 +19,7 @@ CORE_FILES = [
     'assets/smoke/project-brief.md', 'templates/project-brief.md', 'templates/feature-spec.md',
     'templates/pull-request.md', 'references/TASK-AUTHORING.md',
     'references/DOCUMENTATION-CONTINUITY.md', 'templates/documentation-map.md',
-    'references/ROLE-PROFILE-CONTRACT.md', 'references/ROLE-PROFILE-SOURCES.md',
+    'references/ROLE-PROFILE-CONTRACT.md', 'references/ROLE-PROFILE-SOURCES.md', 'references/DESIGN-TOOLS.md',
     *[f'references/trackers/{name}.md' for name in ('local', 'github', 'gitlab', 'jira', 'other')],
 ]
 

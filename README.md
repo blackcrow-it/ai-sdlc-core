@@ -380,7 +380,7 @@ không còn placeholder `REPLACE`. Protected paths và forbidden actions mặc �
 | `skills/ai-sdlc-core/SKILL.md`, `core.json` | Skill chính và manifest phiên bản (nguồn sự thật duy nhất của version và danh sách skill) |
 | `skills/ai-sdlc-core/agents/`, `workflows/` | 14 vai trò + `registry.json`; 9 playbook + `manifest.json` |
 | `skills/ai-sdlc-core/policies/`, `templates/`, `schemas/` | Policy, mẫu tài liệu (brief, feature spec, PRD, SRS, PR…), JSON Schema (task, project) |
-| `skills/ai-sdlc-core/references/` | Operating contract, handoff, gán role, cắt task, tracker, thiết lập Orca, kích hoạt Orchestrator |
+| `skills/ai-sdlc-core/references/` | Operating contract, handoff, gán role, cắt task, tracker, thiết lập Orca, kích hoạt Orchestrator, công cụ thiết kế (Stitch, Rive) |
 | `skills/ai-sdlc-core/assets/` | Template prompt/spec, khối `AGENTS.md`/`CLAUDE.md`, brief smoke test |
 | `skills/ai-sdlc-core/scripts/` | Bootstrap CLI `sdlc.py` + gói `sdlc_core` |
 | `skills/sdlc-{help,setup,status,brief,grill,spec,plan,task,implement,smoke,orchestrate,triage,retro}/` | 13 workflow skill (slash command) |
@@ -401,7 +401,7 @@ python skills/ai-sdlc-core/scripts/sdlc.py doctor --offline
 
 ## Phiên bản (Versioning)
 
-Bản hiện tại là **0.1.6**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
+Bản hiện tại là **0.1.7**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
 `metadata.version` của mọi `SKILL.md` trong gói; `sdlc.py validate --bundled` buộc các giá trị này khớp nhau.
 Mỗi dự án pin `core_version` trong `.ai-sdlc/project.json`. Quy tắc tương thích theo semver:
 
@@ -465,6 +465,15 @@ framework `flutter`, `react-native`, `expo` và dự án Rive (`rive.yaml` ở g
 tài khoản Rive (`login`, `push`, `--publish`…) cần người duyệt. Schema vẫn là `0.1`; config cũ hợp lệ nguyên trạng.
 Cài lại toàn bộ bundled skills `0.1.6`, rồi `sdlc.py upgrade` trong dự án cần nâng pin. Kiểm chứng bằng
 `tests/test_agent_routing.py` và `tests/test_bootstrap.py`; chưa chạy worker Orca thật với `--model`.
+
+### Nâng cấp 0.1.6 → 0.1.7
+
+Project có giao diện kết nối Google Stitch qua Stitch MCP server và `google-labs-code/stitch-skills`, theo reference
+mới [DESIGN-TOOLS.md](skills/ai-sdlc-core/references/DESIGN-TOOLS.md) (gồm cả Rive). Worker spec của
+`ui-ux-designer`/`frontend-developer` và prompt Orchestrator tự kèm reference này; `/sdlc-setup` đề xuất và kiểm tra
+Stitch read-only cho CLI được giao role UI; `templates/UI-SPEC.md` ghi Stitch project/screen ID và `DESIGN.md`.
+API key Stitch do người dùng tạo và giữ ngoài repo; gửi code/asset lên Stitch cần người duyệt. Không đổi schema
+config/task. Cài lại bundled skills `0.1.7`, rồi `sdlc.py upgrade` khi cần nâng pin. Chưa gọi Stitch thật trong test.
 
 ## Giới hạn quan trọng
 

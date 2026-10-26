@@ -3,7 +3,7 @@ name: sdlc-codebase-design
 description: Shared vocabulary and principles for designing deep modules - a lot of behaviour behind a small interface, at a clean seam, testable through that interface. Use when designing or reviewing a module's interface, deciding where a seam goes, choosing test seams for a task, looking for deepening opportunities, or making code easier for agents to navigate.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.6"
+  version: "0.1.7"
 ---
 
 Design **deep modules**: a lot of behaviour behind a small interface, placed at a clean seam, testable through that interface. The aim is **leverage** for callers, **locality** for maintainers and testability for everyone. Examples below are TypeScript; apply the same shapes in the project's languages.

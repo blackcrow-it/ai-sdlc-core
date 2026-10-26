@@ -5,7 +5,7 @@ argument-hint: "The plan, idea or change to sharpen"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.6"
+  version: "0.1.7"
 ---
 
 Call the Skill tool twice, for "sdlc-grilling" and "sdlc-domain-modeling", then interview the user about the plan

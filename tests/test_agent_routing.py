@@ -1,12 +1,15 @@
 import copy
 import json
+import shutil
 import tempfile
 import unittest
 from pathlib import Path
 
 from helpers import CORE, ROOT, example_task, load, run_cli
+from sdlc_core.core import Core
 from sdlc_core.project import validate_config
 from sdlc_core.render import build_activation_prompt, build_smoke_prompt, build_worker_spec
+from sdlc_core.validate import validate_core
 
 
 class AgentRoutingTests(unittest.TestCase):
@@ -274,6 +277,29 @@ class AgentIdTests(unittest.TestCase):
                                        '--agent', agent)
                 self.assertEqual(code, 0, prompt)
                 self.assertIn(f'--agent {agent}', prompt)
+
+
+class DesignToolReferenceTests(unittest.TestCase):
+    def setUp(self):
+        self.config = load(ROOT / 'examples/project.example.json')
+
+    def test_ui_roles_receive_design_tools_reference(self):
+        for role, expected in [('ui-ux-designer', True), ('frontend-developer', True),
+                               ('backend-developer', False), ('qa-engineer', False)]:
+            with self.subTest(role=role):
+                task = example_task()
+                task['owner_agent'] = role
+                spec = build_worker_spec(CORE, self.config, task)
+                self.assertEqual('references/DESIGN-TOOLS.md' in spec, expected)
+
+    def test_orchestrator_reads_design_tools_and_core_requires_it(self):
+        self.assertIn('references/DESIGN-TOOLS.md', build_activation_prompt(CORE, self.config))
+        with tempfile.TemporaryDirectory() as directory:
+            skills = Path(directory) / 'skills'
+            shutil.copytree(CORE.root.parent, skills, ignore=shutil.ignore_patterns('__pycache__'))
+            (skills / 'ai-sdlc-core/references/DESIGN-TOOLS.md').unlink()
+            problems = validate_core(Core(skills / 'ai-sdlc-core'), check_bundled_siblings=True)
+            self.assertTrue(any('DESIGN-TOOLS.md' in problem for problem in problems), problems)
 
 
 if __name__ == '__main__':

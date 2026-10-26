@@ -5,7 +5,7 @@ argument-hint: "Path or tracker reference of the spec, brief or SRS (optional)"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.6"
+  version: "0.1.7"
 ---
 
 Plan the work as a set of task contracts. Do not create Orca Runs, tasks or workers, and do not write product code.

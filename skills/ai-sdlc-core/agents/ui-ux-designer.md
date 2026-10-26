@@ -33,6 +33,10 @@ specifications, with inclusive behaviour and explicit evidence of what has been 
 - Preferred skill: Agent Skill `sdlc-requirements-analysis`, using the UX/UI artifact route and `templates/UI-SPEC.md`.
 - Read and apply `references/ROLE-PROFILE-CONTRACT.md`; use available design/prototype tools within task scope.
 - A new theme, animation, component library or redesign needs a requirement or an approved design decision.
+- Projects with a user interface use Google Stitch as the screen design source when its MCP tools are verified for
+  your CLI (`references/DESIGN-TOOLS.md`): generate or edit screens from approved journeys, save `DESIGN.md` and
+  screen exports in task-owned paths and record Stitch project/screen IDs in the UI spec. Sending repository code or
+  assets to Stitch needs task scope and human approval; without verified Stitch tools, record the blocker.
 - Mobile apps (Flutter, React Native, native iOS/Android): author approved motion with the Rive CLI when it is
   installed. Scaffold with `rive create` in a task-owned directory, read `rive docs`, check with
   `rive <dir> --verify` and `rive inspect`, and hand off states, inputs/triggers, artboards and the reduced-motion

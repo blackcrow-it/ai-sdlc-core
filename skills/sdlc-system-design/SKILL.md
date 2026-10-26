@@ -3,7 +3,7 @@ name: sdlc-system-design
 description: Design software architecture, module interfaces, APIs and data models as deep modules at clean seams, compare real alternatives, record hard-to-reverse decisions as ADRs, and plan security boundaries, test seams, migration and rollback. Use for new systems, significant technical change, database design and architecture reviews.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.6"
+  version: "0.1.7"
 ---
 
 # System design

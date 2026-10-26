@@ -3,7 +3,7 @@ name: sdlc-grilling
 description: Interview the user through the available interactive question tool, exploring a plan, decision, brief, spec or task breakdown until each branch is decided or explicitly open. Use when the user wants to stress-test their thinking, says "grill me", or another SDLC skill needs human decisions.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.6"
+  version: "0.1.7"
 ---
 
 Interview the user until you reach a **shared understanding**. Map the work as a **design tree**: every decision

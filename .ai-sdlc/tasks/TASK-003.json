@@ -1,0 +1,109 @@
+{
+  "task_id": "TASK-003",
+  "project_id": "PROJECT-AI-SDLC-CORE",
+  "title": "Connect UI projects to Google Stitch through its MCP server and skills",
+  "owner_agent": "devops-engineer",
+  "reviewer_agent": "code-reviewer",
+  "status": "submitted_for_review",
+  "risk_level": "medium",
+  "priority": "medium",
+  "dependencies": [
+    "TASK-002"
+  ],
+  "scope": {
+    "allowed_paths": [
+      "skills/ai-sdlc-core/references/DESIGN-TOOLS.md",
+      "skills/ai-sdlc-core/templates/UI-SPEC.md",
+      ".ai-sdlc/tasks/TASK-003.json",
+      "skills/ai-sdlc-core/scripts/**",
+      "skills/ai-sdlc-core/agents/ui-ux-designer.md",
+      "skills/ai-sdlc-core/agents/frontend-developer.md",
+      "tests/**",
+      "README.md",
+      "skills/ai-sdlc-core/SKILL.md",
+      "skills/sdlc-brief/SKILL.md",
+      "skills/sdlc-code-review/SKILL.md",
+      "skills/sdlc-codebase-design/SKILL.md",
+      "skills/sdlc-debugging/SKILL.md",
+      "skills/sdlc-domain-modeling/SKILL.md",
+      "skills/sdlc-grill/SKILL.md",
+      "skills/sdlc-grilling/SKILL.md",
+      "skills/sdlc-help/SKILL.md",
+      "skills/sdlc-implement/SKILL.md",
+      "skills/sdlc-implementation/SKILL.md",
+      "skills/sdlc-orchestrate/SKILL.md",
+      "skills/sdlc-plan/SKILL.md",
+      "skills/sdlc-prototype/SKILL.md",
+      "skills/sdlc-requirements-analysis/SKILL.md",
+      "skills/sdlc-research/SKILL.md",
+      "skills/sdlc-retro/SKILL.md",
+      "skills/sdlc-setup/SKILL.md",
+      "skills/sdlc-smoke/SKILL.md",
+      "skills/sdlc-spec/SKILL.md",
+      "skills/sdlc-status/SKILL.md",
+      "skills/sdlc-system-design/SKILL.md",
+      "skills/sdlc-task/SKILL.md",
+      "skills/sdlc-tdd/SKILL.md",
+      "skills/sdlc-testing/SKILL.md",
+      "skills/sdlc-triage/SKILL.md"
+    ],
+    "forbidden_actions": [
+      "deploy_production",
+      "edit_secrets",
+      "merge_protected_branch",
+      "force_push",
+      "destructive_migration",
+      "delete_data",
+      "disable_ci_or_branch_protection"
+    ]
+  },
+  "acceptance_criteria": [
+    "A canonical core reference references/DESIGN-TOOLS.md documents Stitch (remote MCP server, API key outside the repository, google-labs-code/stitch-skills per CLI, DESIGN.md and screen exports as design sources, outbound-data approval) and Rive, citing first-party sources and marking unverified setup details.",
+    "Worker specs for ui-ux-designer and frontend-developer tasks and the Orchestrator activation prompt include references/DESIGN-TOOLS.md; other roles do not; validate --bundled requires the file.",
+    "UI/UX and frontend role profiles and templates/UI-SPEC.md use Stitch as the design source when the project has a UI and the Stitch tools are verified, and record a blocker otherwise.",
+    "/sdlc-setup offers Stitch for projects with a user interface, checks MCP availability read-only per selected CLI and never writes the API key into the repository.",
+    "Bundled skill versions and core.json are 0.1.7; README documents the 0.1.6 -> 0.1.7 upgrade without claiming a live Stitch call."
+  ],
+  "test_seams": [
+    "build_worker_spec, build_activation_prompt and validate_core (bundled required files); tests do not call Stitch or start agents."
+  ],
+  "documentation": {
+    "assessment": "Adds Stitch design-tool guidance for UI projects; no config/task schema change. Update README, the new DESIGN-TOOLS reference, the UI-SPEC template and the setup skill. Requirement IDs are not applicable to process guidance. The core.json version bump is a protected path; the named approver (Nguyen Quang Hung) approved it on 2026-10-26, and scope still reports that path.",
+    "updates": [
+      {
+        "path": "README.md",
+        "change": "Document Stitch integration and the 0.1.7 upgrade.",
+        "requirement_ids": []
+      },
+      {
+        "path": "skills/ai-sdlc-core/references/DESIGN-TOOLS.md",
+        "change": "New canonical Stitch and Rive guidance.",
+        "requirement_ids": []
+      },
+      {
+        "path": "skills/sdlc-setup/SKILL.md",
+        "change": "Offer and verify Stitch for UI projects.",
+        "requirement_ids": []
+      }
+    ]
+  },
+  "required_checks": [
+    "python skills/ai-sdlc-core/scripts/sdlc.py validate --bundled --task examples/task-auth.json",
+    "python -m unittest discover -s tests -v"
+  ],
+  "deliverables": [
+    "references/DESIGN-TOOLS.md",
+    "Role, template and setup guidance",
+    "Regression tests",
+    "Core 0.1.7 and upgrade documentation"
+  ],
+  "max_attempts": 2,
+  "human_approval_required": true,
+  "input_artifacts": [
+    "README.md",
+    "skills/ai-sdlc-core/agents/ui-ux-designer.md",
+    "skills/ai-sdlc-core/agents/frontend-developer.md"
+  ],
+  "orca_run_id": null,
+  "evidence_paths": []
+}

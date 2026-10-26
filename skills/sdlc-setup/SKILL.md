@@ -5,7 +5,7 @@ argument-hint: "Optional: one line about the project"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.6"
+  version: "0.1.7"
 ---
 
 Set up AI SDLC Core in the repository at the current working directory. You run every command; never ask the user to type one.
@@ -56,6 +56,13 @@ prerequisites are settled. Tool/mode restrictions and fallback follow that skill
    `--model` for claude, codex, antigravity, cursor and opencode, and `--effort` for all of them except opencode;
    opencode2 and other CLIs without that support keep their own config. A pinned role needs its own
    `--role-agent` entry. Show model/effort in the reviewed role → CLI table.
+   **Design tools** (only when the project has a user interface: frontend/mobile frameworks detected or the user
+   confirms one; enabled UI roles alone are not evidence): recommend connecting Google Stitch per core
+   `references/DESIGN-TOOLS.md` for the CLIs assigned to those roles. Check read-only whether each CLI already lists a
+   Stitch MCP server and its tools; for gaps, give the user the official setup and skills install steps and let
+   them create the API key and run or approve installs. Never ask for, echo or store the key in the repository.
+   Record the per-CLI Stitch status (verified/unverified/declined) in the setup summary; mobile projects also get
+   the Rive section of that reference.
 10. **Issue tracker:** the single place task contracts will live. Options are `local` (JSON files in `.ai-sdlc/tasks/`, committed), `github` (`gh`), `gitlab` (`glab`), `jira` (through `orca jira`; needs the project key), or `other` (the user describes the workflow in one paragraph). Recommend the tracker named in the `tracker suggestion` line from `init --dry-run` when there is one; otherwise recommend `local`. Tasks are never mirrored to a second place.
 11. **Triage labels** (only for a remote tracker): "Keep the default triage labels?" (recommended: yes). The defaults equal the role names: `bug`, `enhancement`, `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. Only when the tracker already uses other strings, collect the overrides as `--triage-label ROLE=LABEL` so /sdlc-triage applies the existing labels instead of creating duplicates.
 
