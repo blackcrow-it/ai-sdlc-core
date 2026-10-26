@@ -13,7 +13,7 @@ Một role ≠ một tiến trình cố định. Cùng một provider CLI có th
 
 ## Chọn CLI theo công việc
 
-`orca.agent` là CLI mặc định (`claude`, `codex`, `antigravity` hoặc `opencode`). `orca.role_agents` là map tùy chọn từ
+`orca.agent` là CLI mặc định (`claude`, `codex`, `antigravity`, `opencode`, `cursor` hoặc `opencode2`, theo agent ID mà Orca nhận). `orca.role_agents` là map tùy chọn từ
 role ID đang bật sang CLI; role không có entry kế thừa mặc định. Ví dụ:
 
 ```json
@@ -46,7 +46,7 @@ Với OpenCode, dùng `--agent opencode` hoặc `--role-agent backend-developer=
 chấp nhận CLI này từ core 0.1.5. Đây là hỗ trợ cấu hình và render, không chứng minh Orca trên execution host
 đã tích hợp đúng phiên bản OpenCode. Kiểm tra agent ID Orca thực sự hỗ trợ, xác thực, skill discovery, công cụ
 và lifecycle trước dispatch; nếu host dùng ID khác hoặc chưa hỗ trợ, báo blocker thay vì tự đổi ID/CLI.
-Model/effort vẫn do cấu hình provider và policy dự án quyết định. Chỉ truyền flag được guide/CLI trên host
+Model/effort do cấu hình provider quyết định, trừ khi `orca.role_models` ghim cho role (mục bên dưới). Chỉ truyền flag được guide/CLI trên host
 xác nhận hỗ trợ cho OpenCode; generic launch help không đủ để chứng minh khả năng chọn model của provider.
 
 Trước khi trình plan và ngay trước dispatch, kiểm tra trên **execution host**: CLI đã tích hợp và được bật trong
@@ -59,7 +59,33 @@ Trình role → CLI và các khả năng còn thiếu trong plan xin duyệt. Kh
 đề nghị người dùng chọn lại; không tự thay CLI, tự cài tool hay bật integration. Sau lỗi khởi chạy không rõ kết
 quả, đối soát receipt/lifecycle theo guide trước mọi retry, không mở worker khác để né lỗi.
 
-Map không cấp quyền, không thay model/effort và không chuyển CLI của phiên đang chạy. Entry `orchestrator` là
+## Chọn model/effort theo role
+
+`orca.role_models` là map tùy chọn từ role sang `{model, effort?}`; Orchestrator truyền thành
+`worker-start --model <id> --effort <level>` cho cả owner và reviewer. Role chỉ được ghim model khi có entry
+`orca.role_agents` riêng, vì model ID phụ thuộc provider và `activate --agent` không được làm model lệch CLI.
+Role không ghim giữ model trong cấu hình của CLI. Ví dụ:
+
+```json
+{
+  "role_agents": {"backend-developer": "codex", "code-reviewer": "claude", "frontend-developer": "antigravity"},
+  "role_models": {
+    "backend-developer": {"model": "gpt-6.1-sol", "effort": "high"},
+    "code-reviewer": {"model": "claude-opus-5-5", "effort": "high"},
+    "frontend-developer": {"model": "gemini-3.8-flash-high"}
+  }
+}
+```
+
+Init: `--role-model ROLE=MODEL[:EFFORT]` (lặp theo role; hậu tố `:EFFORT` chỉ được tách khi là
+`minimal|low|medium|high|xhigh|max`). Theo help của Orca 1.4.230, `--model` hỗ trợ claude, codex, cursor,
+antigravity (và muse); `--effort` cần `--model`; OpenCode chỉ nhận `--model` khi worktree đã tồn tại, CLI trên host
+đã xác minh và model khả dụng (validation cảnh báo); opencode2 và CLI khác dùng model của config riêng, nên
+validation từ chối model pin cho chúng. Validation không biết model ID có tồn tại hay không: trước dispatch,
+xác minh bằng discovery read-only trên execution host (ví dụ `agy models`, `opencode models`, config provider).
+Không tự đổi model/effort khi model không khả dụng; báo blocker và xin người dùng chọn lại.
+
+Map không cấp quyền, không tự thay model/effort ngoài `orca.role_models` và không chuyển CLI của phiên đang chạy. Entry `orchestrator` là
 lựa chọn khi con người mở phiên điều phối; phiên hiện tại chỉ báo khác biệt, không tự khởi chạy hay handoff.
 `/sdlc-implement` trực tiếp vẫn làm trong phiên hiện tại; map chỉ là dữ liệu dispatch cho Orca, không là lý do
 để tự tạo worker. Reviewer phải độc lập với tác giả dù dùng cùng CLI hay khác CLI.

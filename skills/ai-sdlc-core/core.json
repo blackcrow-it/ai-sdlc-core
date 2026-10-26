@@ -1,6 +1,6 @@
 {
   "name": "ai-sdlc-core",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "config_schema_version": "0.1",
   "description": "Canonical AI SDLC Core: 14 agent roles, 9 SDLC workflows, engineering-discipline skills, policies, templates, schemas and the Bootstrap CLI. Project repositories keep only .ai-sdlc/project.json.",
   "bundled_skills": [

@@ -54,6 +54,26 @@ class DetectionTests(ProjectTestCase):
         self.assertEqual(found['commands']['test'], [])
         self.assertIn('python', found['languages'])
 
+    def test_mobile_projects_with_rive_motion(self):
+        (self.dir / 'pubspec.yaml').write_text('name: app\nflutter:\n  uses-material-design: true\n')
+        (self.dir / 'motion').mkdir()
+        (self.dir / 'motion/rive.yaml').write_text('name: motion\n')
+        found = detect_stack(self.dir)
+        self.assertEqual(found['frameworks'], ['flutter', 'rive'])
+        self.assertEqual(found['commands']['lint'], ['rive motion --verify'])
+        (self.dir / 'rive.yaml').write_text('name: root\n')
+        self.assertEqual(detect_stack(self.dir)['commands']['lint'], ['rive . --verify', 'rive motion --verify'])
+        for name in ('.dart_tool', 'my motion'):
+            (self.dir / name).mkdir()
+            (self.dir / name / 'rive.yaml').write_text('name: x\n')
+        self.assertEqual(detect_stack(self.dir)['commands']['lint'],
+                         ['rive . --verify', 'rive motion --verify', 'rive "my motion" --verify'])
+
+    def test_react_native_and_expo_are_recorded_as_frameworks(self):
+        (self.dir / 'package.json').write_text(json.dumps(
+            {'dependencies': {'react': '19', 'react-native': '0.80', 'expo': '54'}}))
+        self.assertEqual(detect_stack(self.dir)['frameworks'], ['react', 'react-native', 'expo'])
+
     def test_go_and_python_pytest(self):
         (self.dir / 'go.mod').write_text('module x\n')
         (self.dir / 'pyproject.toml').write_text('[tool.pytest.ini_options]\n')

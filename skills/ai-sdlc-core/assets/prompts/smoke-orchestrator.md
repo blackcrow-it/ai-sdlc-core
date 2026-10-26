@@ -25,7 +25,7 @@ PRE-FLIGHT (read-only; do not create Run/Task/Dispatch yet):
 AFTER APPROVAL:
 1. Create **one** Orca Run with run-create; record the actual ID.
 2. Create **one** Task using the **complete** content of `{{spec_path}}` (never a path-only prompt). Record the actual ID.
-3. Start one worker with `--task <actualTaskId> --worktree current --agent {{smoke_agent}}` as allowed by the installed guide. Do not silently substitute another CLI or create a second worker unless an explicit, evidence-based recovery decision allows it.
+3. Start one worker with `--task <actualTaskId> --worktree current {{smoke_launch}}` as allowed by the installed guide. Do not silently substitute another CLI or create a second worker unless an explicit, evidence-based recovery decision allows it.
 4. Follow the **installed** orchestration guide for wait/check, questions, acknowledgement, worker completion, release/retain and recovery. Never assume a timeout proves termination.
 5. Verify both expected files and run `{{sdlc}} smoke check`. State separately what was objectively verified and what is still an assumption.
 6. Final report: Run ID, Task ID, Dispatch ID, worker provider, actual files, pass/fail per criterion, blockers and the next SDLC action (`{{sdlc}} activate` for the real project objective).

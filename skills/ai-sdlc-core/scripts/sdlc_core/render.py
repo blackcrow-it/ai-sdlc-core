@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 
-from .project import resolve_agent
+from .project import launch_flags, resolve_agent, resolve_model
 from .validate import CONTRACT_BEGIN, CONTRACT_END, effective_forbidden_actions, effective_protected_paths
 
 PLACEHOLDER_RE = re.compile(r'\{\{([a-z_]+)\}\}')
@@ -78,11 +78,24 @@ def project_context(core, config, default_agent=None):
                  '(missing roles inherit the default): '
                  + (', '.join(f'`{role}` → `{agent}`' for role, agent in
                               sorted(config['orca'].get('role_agents', {}).items())) or '(none)'))
+    lines.append('- Role models (`orca.role_models`, passed as `worker-start --model/--effort`; missing roles keep '
+                 'their CLI model config): '
+                 + (', '.join(f'`{role}` → `{route["model"]}`' + (f' (`{route["effort"]}`)' if route.get('effort') else '')
+                              for role, route in sorted(config['orca'].get('role_models', {}).items())) or '(none)'))
     approvers = ', '.join(f'{k}={v or "UNASSIGNED"}' for k, v in sdlc['approvers'].items())
     lines.append(f'- Human approvers: {approvers}; release environments: {code_list(sdlc["release_environments"])}')
     if config['extra_policies']:
         lines.append(f'- Extra project policies (tighten core rules only): {code_list(config["extra_policies"])}')
     return '\n'.join(lines)
+
+
+def cli_label(config, role):
+    """`cli` plus its pinned model/effort, as shown in a worker spec."""
+    label = f'`{resolve_agent(config, role)}`'
+    route = resolve_model(config, role)
+    if route:
+        label += f' (model `{route["model"]}`' + (f', effort `{route["effort"]}`' if route.get('effort') else '') + ')'
+    return label
 
 
 def tracker_doc(config):
@@ -114,8 +127,8 @@ def build_worker_spec(core, config, task):
         'task_id': task['task_id'], 'title': task['title'], 'core_version': core.version,
         'project_id': config['project']['id'], 'project_name': config['project']['name'],
         'owner_agent': task['owner_agent'], 'reviewer_agent': task['reviewer_agent'],
-        'owner_cli': resolve_agent(config, task['owner_agent']),
-        'reviewer_cli': resolve_agent(config, task['reviewer_agent']),
+        'owner_cli': cli_label(config, task['owner_agent']),
+        'reviewer_cli': cli_label(config, task['reviewer_agent']),
         'dependencies': code_list(task['dependencies'], '(none)'),
         'acceptance_criteria': bullets(task['acceptance_criteria']),
         'test_seams': '; '.join(task.get('test_seams', [])) or '(none listed: the task has no code-level tests)',
@@ -189,7 +202,8 @@ def build_smoke_prompt(core, config, agent=None):
     paths = smoke_paths(core)
     values.update({'spec_path': paths['spec'], 'requirements_path': paths['requirements'],
                    'handoff_path': paths['handoff'],
-                   'smoke_agent': resolve_agent(config, 'business-analyst', agent)})
+                   'smoke_agent': resolve_agent(config, 'business-analyst', agent),
+                   'smoke_launch': launch_flags(config, 'business-analyst', agent)})
     return render(core.asset('prompts/smoke-orchestrator.md'), values)
 
 

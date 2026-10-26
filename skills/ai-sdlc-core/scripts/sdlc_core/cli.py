@@ -2,13 +2,14 @@
 import argparse
 import json
 import sys
+from difflib import get_close_matches
 from pathlib import Path
 
 from .core import Core
 from .documentation import check_documentation
 from .environment import install_skills, install_targets, run_doctor, upgrade_project
-from .project import (APPROVER_ROLES, COMMAND_KEYS, ORCA_AGENTS, TRIAGE_ROLES, changed_paths, init_project, load_config,
-                      refresh_blocks, validate_config, write_text)
+from .project import (APPROVER_ROLES, COMMAND_KEYS, EFFORTS, MODEL_ID, ORCA_AGENTS, TRIAGE_ROLES, changed_paths,
+                      init_project, load_config, model_route_errors, refresh_blocks, validate_config, write_text)
 from .render import (build_activation_prompt, build_smoke_prompt, build_smoke_spec, build_task_body,
                      build_worker_spec, check_smoke_outputs, smoke_paths)
 from .validate import (effective_forbidden_actions, effective_protected_paths, implementation_roles, load_task,
@@ -121,6 +122,28 @@ def cmd_init(core, args):
             return 1
         role_agents[role] = agent
     opts['role_agents'] = role_agents
+    role_models = {}
+    for item in args.role_model or []:
+        role, separator, model = item.partition('=')
+        role, model = role.strip(), model.strip()
+        head, _, effort = model.rpartition(':')
+        route = {'model': head, 'effort': effort} if effort in EFFORTS else {'model': model}
+        typo = get_close_matches(effort, EFFORTS, n=1, cutoff=0.75) if effort not in EFFORTS else []
+        if (not separator or role not in core.role_ids or not route['model'] or typo
+                or not MODEL_ID.fullmatch(route['model'])):
+            print(f'FAIL: --role-model expects ROLE=MODEL[:EFFORT] with an SDLC role, a model id of '
+                  f'[A-Za-z0-9._:/@+-] and EFFORT in {", ".join(EFFORTS)}; got {item!r}'
+                  + (f' (did you mean :{typo[0]}?)' if typo else ''))
+            return 1
+        if role in role_models and role_models[role] != route:
+            print(f'FAIL: conflicting --role-model assignments for {role}')
+            return 1
+        problems = model_route_errors(role, route, role_agents)
+        if problems:
+            print(f'FAIL: {problems[0]} (pass --role-agent {role}=AGENT)')
+            return 1
+        role_models[role] = route
+    opts['role_models'] = role_models
     try:
         config, actions, evidence = init_project(core, d, opts, force=args.force, dry_run=args.dry_run,
                                                  write_agent_files=not args.no_agent_files)
@@ -424,6 +447,8 @@ def build_parser():
         p.add_argument(f'--{flag}', choices=ORCA_AGENTS if flag == 'agent' else None)
     p.add_argument('--role-agent', action='append', metavar='ROLE=AGENT',
                    help='CLI override for an enabled SDLC role; others inherit --agent (repeatable)')
+    p.add_argument('--role-model', action='append', metavar='ROLE=MODEL[:EFFORT]',
+                   help='provider model (and effort) for a role with --role-agent; passed to Orca worker-start (repeatable)')
     for flag in ('language', 'framework', 'runtime', 'architecture-doc', 'rule', 'rule-file', 'in-scope',
                  'out-of-scope', 'allowed-path', 'protected-path', 'forbidden-action', 'role', 'phase',
                  'extra-policy'):

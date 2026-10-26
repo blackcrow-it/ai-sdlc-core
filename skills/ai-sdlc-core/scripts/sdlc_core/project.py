@@ -10,7 +10,12 @@ from .core import compat_error
 from .validate import bad_relative_path
 
 COMMAND_KEYS = ('install', 'build', 'lint', 'typecheck', 'test', 'e2e', 'security')
-ORCA_AGENTS = ('claude', 'codex', 'antigravity', 'opencode')
+ORCA_AGENTS = ('claude', 'codex', 'antigravity', 'opencode', 'cursor', 'opencode2')
+# Orca `worker-start --model/--effort` support as documented by its help (Orca 1.4.230); others use their own config.
+MODEL_AGENTS = ('claude', 'codex', 'antigravity', 'cursor', 'opencode')
+EFFORT_AGENTS = ('claude', 'codex', 'antigravity', 'cursor')
+EFFORTS = ('minimal', 'low', 'medium', 'high', 'xhigh', 'max')
+MODEL_ID = re.compile(r'[A-Za-z0-9._:/@+-]+')  # rendered into shell flags and Markdown code spans
 BLOCK_BEGIN = '<!-- ai-sdlc-core:begin -->'
 BLOCK_END = '<!-- ai-sdlc-core:end -->'
 APPROVER_ROLES = ('product_owner', 'tech_lead', 'security_owner', 'release_owner')
@@ -21,8 +26,8 @@ SOURCE_DIRS = ('src', 'lib', 'app', 'apps', 'packages', 'pkg', 'cmd', 'internal'
 ARCHITECTURE_DOCS = ('ARCHITECTURE.md', 'docs/architecture.md', 'docs/ARCHITECTURE.md')
 RULE_FILES = ('CONTRIBUTING.md', 'docs/CONTRIBUTING.md', 'STYLEGUIDE.md', 'docs/coding-standards.md',
               '.editorconfig')
-JS_FRAMEWORKS = ('react', 'next', 'vue', 'nuxt', 'svelte', '@angular/core', 'express', 'fastify',
-                 '@nestjs/core', 'electron')
+JS_FRAMEWORKS = ('react', 'react-native', 'expo', 'next', 'vue', 'nuxt', 'svelte', '@angular/core', 'express',
+                 'fastify', '@nestjs/core', 'electron')
 PY_FRAMEWORKS = ('django', 'flask', 'fastapi')
 
 
@@ -143,7 +148,15 @@ def detect_stack(project_dir):
     if (d / 'pubspec.yaml').is_file():
         flutter = 'flutter:' in _read(d / 'pubspec.yaml')
         lang('dart'); pm('flutter' if flutter else 'dart')
+        found['frameworks'] += ['flutter'] if flutter else []
         add('test', 'flutter test' if flutter else 'dart test', 'pubspec.yaml')
+    rive_dirs = ['.'] if (d / 'rive.yaml').is_file() else []
+    rive_dirs += sorted(p.parent.name for p in d.glob('*/rive.yaml') if not p.parent.name.startswith('.'))
+    if rive_dirs:
+        found['frameworks'].append('rive')
+    for rive_dir in rive_dirs:
+        arg = rive_dir if re.fullmatch(r'[\w.-]+', rive_dir) else f'"{rive_dir}"'
+        add('lint', f'rive {arg} --verify', f'{rive_dir}/rive.yaml (Rive CLI motion project)')
     makefile = _read(d / 'Makefile') if (d / 'Makefile').is_file() else ''
     for target in ('test', 'lint', 'build'):
         if re.search(rf'(?m)^{target}\s*:', makefile):
@@ -260,6 +273,7 @@ def build_config(core, project_dir, opts=None):
         'orca': {
             'agent': opts.get('agent') or 'claude',
             **({'role_agents': dict(opts['role_agents'])} if opts.get('role_agents') else {}),
+            **({'role_models': dict(opts['role_models'])} if opts.get('role_models') else {}),
             'worktree_strategy': 'per-task',
             'max_parallel_workers': 2,
         },
@@ -296,6 +310,16 @@ def validate_config(config, core, project_dir=None):
             errors.append(f'Unknown role in orca.role_agents: {role}')
         elif role not in roles:
             errors.append(f'Role in orca.role_agents is not enabled: {role}')
+    for role, route in config['orca'].get('role_models', {}).items():
+        if role not in core.role_ids:
+            errors.append(f'Unknown role in orca.role_models: {role}')
+        elif role not in roles:
+            errors.append(f'Role in orca.role_models is not enabled: {role}')
+        else:
+            errors += model_route_errors(role, route, config['orca'].get('role_agents', {}))
+            if config['orca'].get('role_agents', {}).get(role) == 'opencode':
+                warnings.append(f'orca.role_models.{role}: OpenCode model selection needs an existing worktree, '
+                                'a verified execution-host CLI and an available model')
     for phase in sorted(phases - set(core.phase_names)):
         errors.append(f'Unknown phase in sdlc.enabled_phases: {phase}')
     if 'orchestrator' not in roles:
@@ -334,10 +358,36 @@ def validate_config(config, core, project_dir=None):
     return errors, warnings
 
 
+def model_route_errors(role, route, role_agents):
+    """Errors for one orca.role_models entry; model ids are provider-specific, so the CLI must be explicit."""
+    agent = role_agents.get(role)
+    if agent is None:
+        return [f'orca.role_models.{role} needs an explicit orca.role_agents entry (model ids are provider-specific)']
+    if agent not in MODEL_AGENTS:
+        return [f'orca.role_models.{role}: Orca cannot pass --model to {agent}; it uses its own model config']
+    if route.get('effort') and agent not in EFFORT_AGENTS:
+        return [f'orca.role_models.{role}: Orca does not support --effort for {agent}']
+    return []
+
+
 def resolve_agent(config, role, default_agent=None):
     """Resolve a CLI without contacting Orca or changing the current agent session."""
     orca = config['orca']
     return orca.get('role_agents', {}).get(role, default_agent or orca['agent'])
+
+
+def resolve_model(config, role):
+    """The pinned {model, effort?} for a role, or None when its CLI keeps its own model config."""
+    return config['orca'].get('role_models', {}).get(role)
+
+
+def launch_flags(config, role, default_agent=None):
+    """Orca worker-start launch flags for a role: --agent, plus --model/--effort when pinned."""
+    flags = f'--agent {resolve_agent(config, role, default_agent)}'
+    route = resolve_model(config, role)
+    if route:
+        flags += f' --model {route["model"]}' + (f' --effort {route["effort"]}' if route.get('effort') else '')
+    return flags
 
 
 def render_block(core, config, name):

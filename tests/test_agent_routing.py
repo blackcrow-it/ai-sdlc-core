@@ -152,5 +152,129 @@ class AgentRoutingTests(unittest.TestCase):
             self.assertIn('--agent opencode', prompt)
 
 
+class ModelRoutingTests(unittest.TestCase):
+    def setUp(self):
+        self.config = load(ROOT / 'examples/project.example.json')
+        self.config['orca'].update(agent='claude', role_agents={
+            'backend-developer': 'codex', 'code-reviewer': 'claude'})
+
+    def cli(self, directory, *args):
+        return run_cli('-C', str(directory), *args)
+
+    def test_init_persists_role_models_and_validate_accepts_them(self):
+        with tempfile.TemporaryDirectory() as directory:
+            code, out = self.cli(directory, 'init', '--no-detect', '--test-cmd', 'python -m unittest',
+                                 '--allowed-path', 'src/**', '--language', 'python',
+                                 '--role-agent', 'backend-developer=codex',
+                                 '--role-agent', 'code-reviewer=claude',
+                                 '--role-model', 'backend-developer=gpt-6.1-sol:high',
+                                 '--role-model', 'code-reviewer=claude-opus-5-5')
+            self.assertEqual(code, 0, out)
+            config = load(Path(directory) / '.ai-sdlc/project.json')
+            self.assertEqual(config['orca']['role_models'], {
+                'backend-developer': {'model': 'gpt-6.1-sol', 'effort': 'high'},
+                'code-reviewer': {'model': 'claude-opus-5-5'}})
+            code, out = self.cli(directory, 'validate')
+            self.assertEqual(code, 0, out)
+
+    def test_init_rejects_bad_role_models_before_writing(self):
+        cases = [
+            ['--role-model', 'backend-developer=gpt-6.1-sol'],
+            ['--role-agent', 'backend-developer=codex', '--role-model', 'backend-developer='],
+            ['--role-agent', 'backend-developer=codex', '--role-model', 'backend=gpt-6.1-sol'],
+            ['--role-agent', 'backend-developer=codex', '--role-model', 'backend-developer=a',
+             '--role-model', 'backend-developer=b'],
+            ['--role-agent', 'backend-developer=opencode', '--role-model', 'backend-developer=minimax/MiniMax-M3:high'],
+            ['--role-agent', 'backend-developer=opencode2', '--role-model', 'backend-developer=minimax/MiniMax-M3'],
+            ['--role-agent', 'backend-developer=codex', '--role-model', 'backend-developer=gpt-6.1-sol:hihg'],
+            ['--role-agent', 'backend-developer=codex', '--role-model', 'backend-developer=:high'],
+            ['--role-agent', 'backend-developer=codex', '--role-model', 'backend-developer=gpt;rm'],
+            ['--role-agent', 'backend-developer=codex', '--role-model', 'backend-developer=$(x)'],
+        ]
+        for flags in cases:
+            with self.subTest(flags=flags), tempfile.TemporaryDirectory() as directory:
+                code, out = self.cli(directory, 'init', '--no-detect', *flags)
+                self.assertEqual(code, 1, out)
+                self.assertEqual(list(Path(directory).iterdir()), [])
+
+    def test_model_ids_with_colons_keep_unknown_suffixes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            code, out = self.cli(directory, 'init', '--no-detect', '--dry-run',
+                                 '--role-agent', 'backend-developer=codex',
+                                 '--role-model', 'backend-developer=vendor:model-v1:0')
+            self.assertEqual(code, 0, out)
+            self.assertIn('"model": "vendor:model-v1:0"', out)
+
+    def test_validation_rejects_invalid_model_routes(self):
+        cases = [
+            {'backend-developer': {'model': ''}},
+            {'backend-developer': {'model': 'x', 'effort': 'extreme'}},
+            {'backend-developer': {'effort': 'high'}},
+            {'backend-developer': 'gpt-6.1-sol'},
+            {'backend-developer': {'model': 'x', 'agent': 'codex'}},
+            {'frontend-developer': {'model': 'x'}},
+            {'invented-role': {'model': 'x'}},
+            {'backend-developer': {'model': 'gpt`x`'}},
+        ]
+        for mapping in cases:
+            with self.subTest(mapping=mapping):
+                config = copy.deepcopy(self.config)
+                config['orca']['role_models'] = mapping
+                self.assertTrue(validate_config(config, CORE)[0])
+        self.config['orca']['role_agents']['technical-writer'] = 'opencode'
+        self.config['orca']['role_models'] = {'technical-writer': {'model': 'kimi/k3', 'effort': 'low'}}
+        self.assertTrue(validate_config(self.config, CORE)[0])
+        self.config['orca']['role_models'] = {'technical-writer': {'model': 'kimi/k3'}}
+        errors, warnings = validate_config(self.config, CORE)
+        self.assertEqual(errors, [])
+        self.assertTrue(any('OpenCode' in w for w in warnings), warnings)
+
+    def test_worker_spec_renders_model_and_effort_per_role(self):
+        self.config['orca']['role_models'] = {
+            'backend-developer': {'model': 'gpt-6.1-sol', 'effort': 'high'},
+            'code-reviewer': {'model': 'claude-opus-5-5'}}
+        self.assertEqual(validate_config(self.config, CORE)[0], [])
+        task = example_task()
+        task.update(owner_agent='backend-developer', reviewer_agent='code-reviewer')
+        spec = build_worker_spec(CORE, self.config, task)
+        self.assertIn('Owner CLI: `codex` (model `gpt-6.1-sol`, effort `high`); '
+                      'reviewer CLI: `claude` (model `claude-opus-5-5`)', spec)
+        self.assertIn('`backend-developer` → `gpt-6.1-sol` (`high`)', spec)
+
+    def test_smoke_prompt_carries_launch_flags_and_activation_explains_them(self):
+        self.config['orca']['role_agents']['business-analyst'] = 'antigravity'
+        self.config['orca']['role_models'] = {
+            'business-analyst': {'model': 'gemini-3.8-flash-high', 'effort': 'medium'}}
+        smoke = build_smoke_prompt(CORE, self.config)
+        self.assertIn('--agent antigravity --model gemini-3.8-flash-high --effort medium', smoke)
+        prompt = build_activation_prompt(CORE, self.config, agent='codex')
+        self.assertIn('orca.role_models', prompt)
+        self.assertIn('`business-analyst` → `gemini-3.8-flash-high` (`medium`)', prompt)
+
+    def test_no_model_pinned_renders_nothing_extra(self):
+        self.config['orca'].pop('role_models', None)
+        spec = build_worker_spec(CORE, self.config, example_task())
+        self.assertNotIn('(model `', spec)
+        smoke = build_smoke_prompt(CORE, self.config)
+        self.assertIn('--worktree current --agent claude` as allowed', smoke)
+        self.assertIn('keep their CLI model config): (none)', smoke)
+
+
+class AgentIdTests(unittest.TestCase):
+    def test_cursor_and_opencode2_are_accepted_everywhere(self):
+        for agent in ('cursor', 'opencode2'):
+            with self.subTest(agent=agent), tempfile.TemporaryDirectory() as directory:
+                code, out = run_cli('-C', directory, 'init', '--no-detect', '--test-cmd', 'python -m unittest',
+                                    '--allowed-path', 'src/**', '--language', 'python',
+                                    '--agent', agent, '--role-agent', f'business-analyst={agent}')
+                self.assertEqual(code, 0, out)
+                code, out = run_cli('-C', directory, 'validate')
+                self.assertEqual(code, 0, out)
+                code, prompt = run_cli('-C', directory, 'activate', '--smoke', '--offline', '--stdout',
+                                       '--agent', agent)
+                self.assertEqual(code, 0, prompt)
+                self.assertIn(f'--agent {agent}', prompt)
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -4,7 +4,7 @@ description: Prove Orca orchestration works in this repository - supervise exact
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 Run the AI SDLC Core smoke test as the supervised Orchestrator, in this session.

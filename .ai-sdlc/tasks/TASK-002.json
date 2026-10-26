@@ -1,0 +1,112 @@
+{
+  "task_id": "TASK-002",
+  "project_id": "PROJECT-AI-SDLC-CORE",
+  "title": "Per-role model routing, more Orca agent IDs and Rive motion guidance for mobile",
+  "owner_agent": "devops-engineer",
+  "reviewer_agent": "code-reviewer",
+  "status": "submitted_for_review",
+  "risk_level": "medium",
+  "priority": "medium",
+  "dependencies": [
+    "TASK-001"
+  ],
+  "scope": {
+    "allowed_paths": [
+      "skills/ai-sdlc-core/scripts/**",
+      "skills/ai-sdlc-core/schemas/project.schema.json",
+      "skills/ai-sdlc-core/references/ROLE-ASSIGNMENT.md",
+      "skills/ai-sdlc-core/assets/prompts/**",
+      "skills/ai-sdlc-core/agents/ui-ux-designer.md",
+      "skills/ai-sdlc-core/agents/frontend-developer.md",
+      "examples/project.example.json",
+      "tests/**",
+      "README.md",
+      ".ai-sdlc/tasks/TASK-002.json",
+      "skills/ai-sdlc-core/SKILL.md",
+      "skills/sdlc-brief/SKILL.md",
+      "skills/sdlc-code-review/SKILL.md",
+      "skills/sdlc-codebase-design/SKILL.md",
+      "skills/sdlc-debugging/SKILL.md",
+      "skills/sdlc-domain-modeling/SKILL.md",
+      "skills/sdlc-grill/SKILL.md",
+      "skills/sdlc-grilling/SKILL.md",
+      "skills/sdlc-help/SKILL.md",
+      "skills/sdlc-implement/SKILL.md",
+      "skills/sdlc-implementation/SKILL.md",
+      "skills/sdlc-orchestrate/SKILL.md",
+      "skills/sdlc-plan/SKILL.md",
+      "skills/sdlc-prototype/SKILL.md",
+      "skills/sdlc-requirements-analysis/SKILL.md",
+      "skills/sdlc-research/SKILL.md",
+      "skills/sdlc-retro/SKILL.md",
+      "skills/sdlc-setup/SKILL.md",
+      "skills/sdlc-smoke/SKILL.md",
+      "skills/sdlc-spec/SKILL.md",
+      "skills/sdlc-status/SKILL.md",
+      "skills/sdlc-system-design/SKILL.md",
+      "skills/sdlc-task/SKILL.md",
+      "skills/sdlc-tdd/SKILL.md",
+      "skills/sdlc-testing/SKILL.md",
+      "skills/sdlc-triage/SKILL.md"
+    ],
+    "forbidden_actions": [
+      "deploy_production",
+      "edit_secrets",
+      "merge_protected_branch",
+      "force_push",
+      "destructive_migration",
+      "delete_data",
+      "disable_ci_or_branch_protection"
+    ]
+  },
+  "acceptance_criteria": [
+    "Config accepts optional orca.role_models {role: {model, effort?}} for enabled roles with an explicit orca.role_agents entry; init writes it from repeatable --role-model ROLE=MODEL[:EFFORT].",
+    "Validation rejects a model for a CLI without Orca --model support, effort for OpenCode, unknown efforts, and roles that are unknown, disabled or lack an explicit CLI; legacy configs without role_models stay valid.",
+    "Worker specs, activation and smoke prompts render the resolved model/effort next to the CLI and the launch flags --model/--effort; nothing is rendered when no model is pinned.",
+    "orca.agent, orca.role_agents, init and activate accept the Orca agent IDs cursor and opencode2 in addition to claude, codex, antigravity and opencode.",
+    "Stack detection records Rive projects (rive.yaml at the root or one level down) with a `rive <dir> --verify` lint command; UI/UX and frontend role profiles document Rive CLI motion for mobile apps with human approval for push/publish.",
+    "Bundled skill versions and core.json are 0.1.6; README documents the 0.1.5 -> 0.1.6 upgrade without claiming a live Orca worker ran."
+  ],
+  "test_seams": [
+    "Bootstrap CLI init, validate and activate, validate_config, detect_stack and rendered worker/activation/smoke prompts; tests do not start real agents, call Rive or mutate Orca."
+  ],
+  "documentation": {
+    "assessment": "Adds an optional config field and two agent IDs (compatible, schema 0.1 kept) and Rive guidance for mobile motion. Update README, ROLE-ASSIGNMENT and the setup skill. No application requirements, API/data contracts or deployment change; requirement IDs are not applicable. The user approved the proposal on 2026-10-26, authorizing the protected core.json version bump; scope must still report that protected path.",
+    "updates": [
+      {
+        "path": "README.md",
+        "change": "Document orca.role_models, --role-model, new agent IDs, Rive detection and the 0.1.6 upgrade.",
+        "requirement_ids": []
+      },
+      {
+        "path": "skills/ai-sdlc-core/references/ROLE-ASSIGNMENT.md",
+        "change": "Document per-role model/effort routing and provider limits.",
+        "requirement_ids": []
+      },
+      {
+        "path": "skills/sdlc-setup/SKILL.md",
+        "change": "Offer per-role model/effort selection and the new CLI IDs.",
+        "requirement_ids": []
+      }
+    ]
+  },
+  "required_checks": [
+    "python skills/ai-sdlc-core/scripts/sdlc.py validate --bundled --task examples/task-auth.json",
+    "python -m unittest discover -s tests -v"
+  ],
+  "deliverables": [
+    "orca.role_models schema, CLI and rendering",
+    "cursor/opencode2 agent IDs",
+    "Rive detection and role guidance",
+    "Regression tests",
+    "Core 0.1.6 and upgrade documentation"
+  ],
+  "max_attempts": 2,
+  "human_approval_required": true,
+  "input_artifacts": [
+    "README.md",
+    "skills/ai-sdlc-core/references/ROLE-ASSIGNMENT.md"
+  ],
+  "orca_run_id": null,
+  "evidence_paths": []
+}

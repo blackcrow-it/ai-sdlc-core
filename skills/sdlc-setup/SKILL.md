@@ -5,7 +5,7 @@ argument-hint: "Optional: one line about the project"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 Set up AI SDLC Core in the repository at the current working directory. You run every command; never ask the user to type one.
@@ -41,7 +41,7 @@ prerequisites are settled. Tool/mode restrictions and fallback follow that skill
 6. Functional scope: in scope and out of scope.
 7. Write ceiling (`allowed_paths`) and extra protected paths. Core protections (`.ai-sdlc/project.json`, CI workflows, `.env*`, keys, secrets) always apply.
 8. Human approvers: product_owner, tech_lead, security_owner, release_owner. Use real names only; an empty role keeps its gate blocked.
-9. Phases/roles to enable (default: all), then the default worker CLI (`claude`, `codex`, `antigravity` or `opencode`).
+9. Phases/roles to enable (default: all), then the default worker CLI (`claude`, `codex`, `antigravity`, `opencode`, `cursor` or `opencode2`).
    Ask whether all enabled roles should inherit it or the user wants assignments by work type. With assignments,
    use small interactive batches to select a CLI for each requested role; related roles may share one choice when
    the prompt names all affected roles. Cover requirements/product, architecture/data, UI/frontend, backend,
@@ -50,7 +50,12 @@ prerequisites are settled. Tool/mode restrictions and fallback follow that skill
    role → CLI table, including inherited defaults, so no enabled work is silently assigned. Never infer a CLI's
    quality or tools from its name; recommend from verified capabilities and the user's preferences. Skip disabled
    roles and reuse earlier decisions. The same CLI may implement and review in separate independent sessions.
-   Do not collect model/effort unless separately requested: this mapping chooses CLIs, leaving their model config intact.
+   Then ask whether any explicitly assigned role should pin a model/effort; default is no, so the CLI keeps its own
+   model config. Offer only model ids listed on the execution host by read-only discovery (for example
+   `agy models`, `opencode models`, the provider config or the user's answer); never invent ids. Orca passes
+   `--model` for claude, codex, antigravity, cursor and opencode, and `--effort` for all of them except opencode;
+   opencode2 and other CLIs without that support keep their own config. A pinned role needs its own
+   `--role-agent` entry. Show model/effort in the reviewed role → CLI table.
 10. **Issue tracker:** the single place task contracts will live. Options are `local` (JSON files in `.ai-sdlc/tasks/`, committed), `github` (`gh`), `gitlab` (`glab`), `jira` (through `orca jira`; needs the project key), or `other` (the user describes the workflow in one paragraph). Recommend the tracker named in the `tracker suggestion` line from `init --dry-run` when there is one; otherwise recommend `local`. Tasks are never mirrored to a second place.
 11. **Triage labels** (only for a remote tracker): "Keep the default triage labels?" (recommended: yes). The defaults equal the role names: `bug`, `enhancement`, `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. Only when the tracker already uses other strings, collect the overrides as `--triage-label ROLE=LABEL` so /sdlc-triage applies the existing labels instead of creating duplicates.
 
@@ -58,10 +63,11 @@ Domain docs need no question: the skills use a root `GLOSSARY.md` and `docs/adr/
 
 ## 4. Write and validate
 
-Run `SDLC init` with the agreed answers: `--name --id --description --reply-language --language --framework --package-manager --runtime --architecture-style --architecture-summary --architecture-doc --install-cmd --build-cmd --lint-cmd --typecheck-cmd --test-cmd --e2e-cmd --security-cmd --rule --rule-file --in-scope --out-of-scope --allowed-path --protected-path --approver ROLE=NAME --agent --role-agent ROLE=AGENT --phase --role --tracker --tracker-project --tracker-notes --triage-label ROLE=LABEL`. Repeat a flag for several values; quote every value.
+Run `SDLC init` with the agreed answers: `--name --id --description --reply-language --language --framework --package-manager --runtime --architecture-style --architecture-summary --architecture-doc --install-cmd --build-cmd --lint-cmd --typecheck-cmd --test-cmd --e2e-cmd --security-cmd --rule --rule-file --in-scope --out-of-scope --allowed-path --protected-path --approver ROLE=NAME --agent --role-agent ROLE=AGENT --role-model ROLE=MODEL[:EFFORT] --phase --role --tracker --tracker-project --tracker-notes --triage-label ROLE=LABEL`. Repeat a flag for several values; quote every value.
 
 Use `--agent` for the default and repeat `--role-agent` for agreed overrides, for example
-`--agent "claude" --role-agent "backend-developer=codex" --role-agent "frontend-developer=antigravity"`.
+`--agent "claude" --role-agent "backend-developer=codex" --role-agent "frontend-developer=antigravity"`,
+plus `--role-model "backend-developer=gpt-6.1-sol:high"` for each agreed model pin.
 Omit overrides for inherited roles. Preview these same flags with `--dry-run` before writing and compare every
 resolved assignment against the reviewed table. Initialization stores preferences only; it does not launch or
 switch the current agent. Unverified availability must remain visible in the handoff and block affected dispatch.

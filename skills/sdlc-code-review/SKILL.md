@@ -3,7 +3,7 @@ name: sdlc-code-review
 description: Independently review the changes since a fixed point on three separate axes - Spec (does it do what the task contract asked, inside its scope?), Standards (does it follow the project's coding rules plus a code-smell baseline?) and Risk (correctness, security, compatibility, data, test quality) - with findings backed by evidence and a single approve or request-changes verdict. Use before accepting a task, merging a branch or releasing, or when asked to review a branch, PR or "changes since X".
 metadata:
   package: ai-sdlc-core
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 # Code review

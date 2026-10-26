@@ -3,7 +3,7 @@ name: sdlc-status
 description: Report whether AI SDLC Core and Orca are ready in this repository - installed core and skills, project config, Git baseline, Orca runtime, task contracts, active Run and pending core upgrades - and say what to do next. Use when asked if AI SDLC is set up or what the next SDLC step is.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 Report AI SDLC readiness for the repository at the current working directory. This skill is read-only unless the user approves an upgrade.

@@ -33,6 +33,11 @@ specifications, with inclusive behaviour and explicit evidence of what has been 
 - Preferred skill: Agent Skill `sdlc-requirements-analysis`, using the UX/UI artifact route and `templates/UI-SPEC.md`.
 - Read and apply `references/ROLE-PROFILE-CONTRACT.md`; use available design/prototype tools within task scope.
 - A new theme, animation, component library or redesign needs a requirement or an approved design decision.
+- Mobile apps (Flutter, React Native, native iOS/Android): author approved motion with the Rive CLI when it is
+  installed. Scaffold with `rive create` in a task-owned directory, read `rive docs`, check with
+  `rive <dir> --verify` and `rive inspect`, and hand off states, inputs/triggers, artboards and the reduced-motion
+  alternative. `rive login`, `push`, `pull`, `library` and `--publish` reach the user's Rive account; run them
+  only with human approval. Without the CLI (or a login for account actions), record the blocker; never hand-write `.riv` files.
 
 ## Definition of Done
 - A developer can implement the scoped journeys and edge states without inventing interaction or product rules.

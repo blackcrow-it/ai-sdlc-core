@@ -5,7 +5,7 @@ AI SDLC Core {{core_version}} | project `{{project_id}}` ({{project_name}}) | ge
 TARGET
 - Work only inside the worktree Orca assigned to this task. Reply in {{reply_language}}; artifacts may be in English.
 - Owner role: `{{owner_agent}}` (preferred skill: {{skill}}); independent reviewer: `{{reviewer_agent}}`.
-- Owner CLI: `{{owner_cli}}`; reviewer CLI: `{{reviewer_cli}}` (Orca dispatch preferences, not permissions).
+- Owner CLI: {{owner_cli}}; reviewer CLI: {{reviewer_cli}} (Orca dispatch preferences, not permissions).
 - Dependencies that must already be accepted: {{dependencies}}
 - Input artifacts: {{input_artifacts}}
 

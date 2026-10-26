@@ -3,7 +3,7 @@ name: sdlc-requirements-analysis
 description: Turn a brief, spec, stakeholder input or an existing SRS into traceable PRD/SRS documents, user stories and measurable acceptance criteria, with verified facts separated from assumptions and open questions routed to their owner. Use for discovery, requirements, UX specs, backlog grooming, release planning and documentation tasks.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 # Requirements analysis

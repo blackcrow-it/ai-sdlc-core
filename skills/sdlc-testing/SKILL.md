@@ -3,7 +3,7 @@ name: sdlc-testing
 description: Plan and execute unit, integration, E2E, regression and security tests tied to acceptance criteria, judge test quality, reproduce defects with a red-capable loop, and give an evidence-based go/no-go. Use for QA, security testing, test reports and release validation.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 # Testing

@@ -3,7 +3,7 @@ name: sdlc-debugging
 description: Disciplined diagnosis loop for hard bugs, flaky tests and performance regressions - build a feedback loop that goes red on this bug, reproduce and minimise, rank falsifiable hypotheses, instrument, fix with a regression test, clean up. Use when the user says "debug"/"diagnose", reports something broken, throwing, failing or slow, or when a required check fails and the cause is not obvious.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.5"
+  version: "0.1.6"
 ---
 
 A discipline for hard bugs. Skip a phase only when you can say why.
