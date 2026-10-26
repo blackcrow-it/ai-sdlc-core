@@ -1,20 +1,24 @@
 ---
 name: sdlc-setup
-description: Set up AI SDLC Core in the current repository - detect the stack, interview the user, choose default and per-role Orca CLIs, write .ai-sdlc/project.json and the AGENTS.md/CLAUDE.md blocks, validate and commit.
-argument-hint: "Optional: one line about the project"
+description: Set up AI SDLC Core in the current repository - detect the stack, interview the user, choose default and per-role Orca CLIs, write .ai-sdlc/project.json and the AGENTS.md/CLAUDE.md blocks, validate and commit, then connect the third-party services the project uses (Stitch, Rive, tracker). `/sdlc-setup connect` runs only the connection step on an initialised project.
+argument-hint: "Optional: one line about the project, or `connect`"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.7"
+  version: "0.1.8"
 ---
 
-Set up AI SDLC Core in the repository at the current working directory. You run every command; never ask the user to type one.
+Set up AI SDLC Core in the repository at the current working directory. You run every command; never ask the user to type one, except interactive logins and secrets, which stay with the user (see [CONNECTIONS.md](CONNECTIONS.md)).
 
 ## 1. Locate the engine
 
 `<CORE>` is the `ai-sdlc-core` skill directory next to this skill's base directory (otherwise look in `.claude/skills`, `.agents/skills`, `~/.claude/skills`, `~/.agents/skills`). The engine is `python "<CORE>/scripts/sdlc.py"` (use `python3` or `py -3` if `python` is missing); call it `SDLC` below. Confirm with `SDLC where`.
 
-If `.ai-sdlc/project.json` already exists, stop and use /sdlc-status instead. Re-initialise with `--force` only when the user explicitly asks.
+If `.ai-sdlc/project.json` already exists, stop and use /sdlc-status instead, unless the argument is `connect`: then
+read that config, run `SDLC validate`, and go straight to step 6 without re-initialising. Connection decisions are not
+stored in the config, so derive the candidate services from the config and the detected stack, and ask again the
+Stitch/Rive questions of step 3 item 9 before connecting. If the argument is `connect` but there is no config yet,
+stop and run the full /sdlc-setup first. Re-initialise with `--force` only when the user explicitly asks.
 
 ## 2. Find the facts yourself
 
@@ -23,7 +27,7 @@ If `.ai-sdlc/project.json` already exists, stop and use /sdlc-status instead. Re
 - Read core `references/ROLE-ASSIGNMENT.md` for CLI routing. Use the installed `orca-cli` guide and read-only
   discovery to check the configured/enabled CLIs on the intended execution host and their skill/tool support.
   A binary on PATH alone does not prove Orca integration. If discovery is unavailable, mark availability unverified
-  and show that gap; do not start a worker, change Orca settings, or install tools during setup to test a choice.
+  and show that gap; do not start a worker, change Orca settings, or install tools here to test a choice.
 
 From this, prepare a recommended answer for every question in step 3. Facts are your job; only decisions go to the user.
 
@@ -57,12 +61,9 @@ prerequisites are settled. Tool/mode restrictions and fallback follow that skill
    opencode2 and other CLIs without that support keep their own config. A pinned role needs its own
    `--role-agent` entry. Show model/effort in the reviewed role → CLI table.
    **Design tools** (only when the project has a user interface: frontend/mobile frameworks detected or the user
-   confirms one; enabled UI roles alone are not evidence): recommend connecting Google Stitch per core
-   `references/DESIGN-TOOLS.md` for the CLIs assigned to those roles. Check read-only whether each CLI already lists a
-   Stitch MCP server and its tools; for gaps, give the user the official setup and skills install steps and let
-   them create the API key and run or approve installs. Never ask for, echo or store the key in the repository.
-   Record the per-CLI Stitch status (verified/unverified/declined) in the setup summary; mobile projects also get
-   the Rive section of that reference.
+   confirms one; enabled UI roles alone are not evidence): ask whether to connect Google Stitch for the CLIs
+   assigned to `ui-ux-designer`/`frontend-developer`, and for mobile projects whether Rive account actions are
+   planned. Record the decisions; the connection itself happens in step 6.
 10. **Issue tracker:** the single place task contracts will live. Options are `local` (JSON files in `.ai-sdlc/tasks/`, committed), `github` (`gh`), `gitlab` (`glab`), `jira` (through `orca jira`; needs the project key), or `other` (the user describes the workflow in one paragraph). Recommend the tracker named in the `tracker suggestion` line from `init --dry-run` when there is one; otherwise recommend `local`. Tasks are never mirrored to a second place.
 11. **Triage labels** (only for a remote tracker): "Keep the default triage labels?" (recommended: yes). The defaults equal the role names: `bug`, `enhancement`, `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. Only when the tracker already uses other strings, collect the overrides as `--triage-label ROLE=LABEL` so /sdlc-triage applies the existing labels instead of creating duplicates.
 
@@ -94,8 +95,17 @@ commit only `.ai-sdlc/project.json AGENTS.md CLAUDE.md .gitignore` and the docum
 with the message `Adopt AI SDLC Core`. Orca worktrees are created from commits, so uncommitted inputs are invisible
 to workers.
 
-## 6. Hand over
+## 6. Connect third-party services
 
-Run `SDLC doctor` and report every FAIL and WARN with its fix, including the `tracker` line (CLI installed and logged in). Suggest /sdlc-smoke to prove Orca orchestration end to end, then `/sdlc-orchestrate docs/brief.md`. If there is no brief yet, suggest /sdlc-brief first. For feature work in an existing product, the flow is /sdlc-grill → /sdlc-spec → /sdlc-plan → /sdlc-implement; /sdlc-help maps every flow.
+Follow [CONNECTIONS.md](CONNECTIONS.md) for every service the agreed config needs: Google Stitch for UI roles, the
+Rive account for mobile motion, and the remote issue tracker. Discover read-only, ask before each machine change,
+leave interactive logins and keys to the user, verify read-only, and report each service per CLI and host as
+`verified`, `unverified` (blocker and next step) or `declined`. Nothing from this step goes into
+`.ai-sdlc/project.json` or the setup commit. Other skills and workers never connect services themselves; their
+blockers point back to `/sdlc-setup connect`, which repeats only this step.
+
+## 7. Hand over
+
+Run `SDLC doctor` and report every FAIL and WARN with its fix, including the `tracker` line (CLI installed and logged in), together with the step 6 connection statuses. Suggest /sdlc-smoke to prove Orca orchestration end to end, then `/sdlc-orchestrate docs/brief.md`. If there is no brief yet, suggest /sdlc-brief first. For feature work in an existing product, the flow is /sdlc-grill → /sdlc-spec → /sdlc-plan → /sdlc-implement; /sdlc-help maps every flow.
 
 When the tracker is GitHub or GitLab and the user kept or set triage labels, offer to create the missing labels (`gh label create` / `glab label create`); creating labels is visible to others, so only on their go-ahead.

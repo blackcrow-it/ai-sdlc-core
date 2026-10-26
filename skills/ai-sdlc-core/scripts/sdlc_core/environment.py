@@ -135,21 +135,21 @@ def tracker_checks(config, project_dir, offline=False):
     if provider == 'jira':
         orca = shutil.which('orca') or shutil.which('orca-ide')
         if not orca:
-            return [('FAIL', 'tracker', 'jira: needs the Orca CLI (`orca jira ...`)')]
+            return [('FAIL', 'tracker', 'jira: needs the Orca CLI (`orca jira ...`) - run `/sdlc-setup connect`')]
         code, output = _run([orca, 'jira', 'connection', '--json'], project_dir, timeout=30)
         try:
             connected = code == 0 and json.loads(output)['result']['connected']
         except (ValueError, KeyError, TypeError):
             connected = False
         return [('OK' if connected else 'FAIL', 'tracker', f'{label}: Jira connection '
-                 + ('ready' if connected else 'missing - connect a Jira site in Orca (`orca jira connection`)'))]
+                 + ('ready' if connected else 'missing - run `/sdlc-setup connect` (the user connects Jira in Orca)'))]
     tool = {'github': 'gh', 'gitlab': 'glab'}[provider]
     exe = shutil.which(tool)
     if not exe:
-        return [('FAIL', 'tracker', f'{label}: `{tool}` CLI not installed')]
+        return [('FAIL', 'tracker', f'{label}: `{tool}` CLI not installed - run `/sdlc-setup connect`')]
     code, _ = _run([exe, 'auth', 'status'], project_dir, timeout=30)
     return [('OK' if code == 0 else 'FAIL', 'tracker',
-             f'{label}: `{tool}` ' + ('authenticated' if code == 0 else f'not authenticated - run `{tool} auth login`'))]
+             f'{label}: `{tool}` ' + ('authenticated' if code == 0 else 'not authenticated - run `/sdlc-setup connect`'))]
 
 
 def install_targets(project_dir, scope, agents):

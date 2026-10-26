@@ -5,7 +5,7 @@ argument-hint: "What the task should achieve"
 disable-model-invocation: true
 metadata:
   package: ai-sdlc-core
-  version: "0.1.7"
+  version: "0.1.8"
 ---
 
 Write **one** task contract for the work the user described. Do not create Orca Runs, tasks or workers. For a breakdown into several tasks, use /sdlc-plan instead.

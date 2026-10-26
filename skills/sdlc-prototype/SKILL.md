@@ -3,7 +3,7 @@ name: sdlc-prototype
 description: Build a throwaway prototype that answers one design question - a single shareable HTML file to push a state model or business logic through hard cases, or several radically different UI variations switchable on one route. Use when a requirement, state machine, data shape or screen is hard to settle on paper and the user (or a designer, PM or domain expert) needs something concrete to react to.
 metadata:
   package: ai-sdlc-core
-  version: "0.1.7"
+  version: "0.1.8"
 ---
 
 A prototype is **throwaway code that answers a question**. The question decides the shape.

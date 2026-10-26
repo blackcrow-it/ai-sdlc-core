@@ -36,12 +36,14 @@ specifications, with inclusive behaviour and explicit evidence of what has been 
 - Projects with a user interface use Google Stitch as the screen design source when its MCP tools are verified for
   your CLI (`references/DESIGN-TOOLS.md`): generate or edit screens from approved journeys, save `DESIGN.md` and
   screen exports in task-owned paths and record Stitch project/screen IDs in the UI spec. Sending repository code or
-  assets to Stitch needs task scope and human approval; without verified Stitch tools, record the blocker.
+  assets to Stitch needs task scope and human approval. Without verified Stitch tools, record a blocker that names
+  `/sdlc-setup connect`; never connect the service yourself.
 - Mobile apps (Flutter, React Native, native iOS/Android): author approved motion with the Rive CLI when it is
   installed. Scaffold with `rive create` in a task-owned directory, read `rive docs`, check with
   `rive <dir> --verify` and `rive inspect`, and hand off states, inputs/triggers, artboards and the reduced-motion
-  alternative. `rive login`, `push`, `pull`, `library` and `--publish` reach the user's Rive account; run them
-  only with human approval. Without the CLI (or a login for account actions), record the blocker; never hand-write `.riv` files.
+  alternative. `push`, `pull`, `library` and `--publish` reach the user's Rive account and need human approval;
+  the account session itself comes from `/sdlc-setup connect`. Without the CLI or a session that account actions
+  need, record the blocker; never hand-write `.riv` files.
 
 ## Definition of Done
 - A developer can implement the scoped journeys and edge states without inventing interaction or product rules.

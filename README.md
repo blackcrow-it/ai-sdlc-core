@@ -43,7 +43,7 @@ Mở phiên Claude Code hoặc Codex của repository trong Orca, rồi gõ slas
 | Slash command | Tác dụng |
 |---|---|
 | `/sdlc-help <tình huống>` | Bản đồ mọi skill và luồng; khi nào nên tiếp tục, `/clear`, handoff, sub-agent hay `/compact` |
-| `/sdlc-setup` | Dò stack, phỏng vấn về kiến trúc, lệnh test, quy tắc coding, phạm vi, người phê duyệt, **CLI mặc định/theo role**, issue tracker, nhãn triage; ghi và validate `.ai-sdlc/project.json`, commit sau khi bạn đồng ý |
+| `/sdlc-setup` | Dò stack, phỏng vấn về kiến trúc, lệnh test, quy tắc coding, phạm vi, người phê duyệt, **CLI mặc định/theo role**, issue tracker, nhãn triage; ghi và validate `.ai-sdlc/project.json`, commit sau khi bạn đồng ý; **kết nối dịch vụ bên thứ 3** (Stitch, Rive, tracker). `/sdlc-setup connect` chỉ chạy bước kết nối cho project đã setup |
 | `/sdlc-status` | Báo cáo chỉ đọc: core, skill, config, Git baseline, Orca, task, **frontier** (task sẵn sàng làm), Run, lệnh nên dùng tiếp |
 | `/sdlc-brief <ý tưởng>` | Phỏng vấn về mục tiêu, người dùng, MVP, tiêu chí thành công, ràng buộc; viết `docs/brief.md` |
 | `/sdlc-grill <kế hoạch>` | Phỏng vấn "tra hỏi" đến khi mọi nhánh quyết định được giải quyết; ghi thuật ngữ vào `GLOSSARY.md`, quyết định khó đảo ngược thành ADR |
@@ -401,7 +401,7 @@ python skills/ai-sdlc-core/scripts/sdlc.py doctor --offline
 
 ## Phiên bản (Versioning)
 
-Bản hiện tại là **0.1.7**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
+Bản hiện tại là **0.1.8**, chưa phát hành. Phiên bản nằm ở một nơi duy nhất: `skills/ai-sdlc-core/core.json` và
 `metadata.version` của mọi `SKILL.md` trong gói; `sdlc.py validate --bundled` buộc các giá trị này khớp nhau.
 Mỗi dự án pin `core_version` trong `.ai-sdlc/project.json`. Quy tắc tương thích theo semver:
 
@@ -474,6 +474,15 @@ mới [DESIGN-TOOLS.md](skills/ai-sdlc-core/references/DESIGN-TOOLS.md) (gồm c
 Stitch read-only cho CLI được giao role UI; `templates/UI-SPEC.md` ghi Stitch project/screen ID và `DESIGN.md`.
 API key Stitch do người dùng tạo và giữ ngoài repo; gửi code/asset lên Stitch cần người duyệt. Không đổi schema
 config/task. Cài lại bundled skills `0.1.7`, rồi `sdlc.py upgrade` khi cần nâng pin. Chưa gọi Stitch thật trong test.
+
+### Nâng cấp 0.1.7 → 0.1.8
+
+Mọi kết nối bên thứ 3 (Stitch MCP và API key, `stitch-skills`, phiên Rive, đăng nhập tracker `gh`/`glab`/Jira) chỉ
+do `/sdlc-setup` thực hiện theo [CONNECTIONS.md](skills/sdlc-setup/CONNECTIONS.md): dò read-only trước, hỏi trước
+mỗi thay đổi trên máy, đăng nhập tương tác và secret do người dùng tự làm ngoài chat/repo, xác minh read-only và báo
+`verified`/`unverified`/`declined` theo CLI và máy. Project đã setup dùng `/sdlc-setup connect` để chỉ chạy bước này.
+Worker, Orchestrator và role profile không tự kết nối; thiếu kết nối thì ghi blocker trỏ về `/sdlc-setup connect`.
+Không đổi schema config/task. Cài lại bundled skills `0.1.8`.
 
 ## Giới hạn quan trọng
 

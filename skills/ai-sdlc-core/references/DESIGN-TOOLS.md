@@ -9,20 +9,12 @@ Stitch sinh và chỉnh màn hình UI từ mô tả, ảnh hoặc code. Agent d�
 remote do Google host) và bộ Agent Skills **`google-labs-code/stitch-skills`** (Apache-2.0, ghi chú "not an
 officially supported Google product"), hỗ trợ Claude Code, Codex, Antigravity, Gemini CLI, Cursor và OpenCode.
 
-### Kết nối (một lần cho mỗi máy và mỗi CLI)
-1. Người dùng tạo API key trong Stitch: ảnh đại diện → Stitch settings → API key → Create key. Key là secret:
-   lưu trong biến môi trường hoặc kho secret của người dùng, **không** ghi vào repo, `.ai-sdlc/project.json`,
-   task contract, spec, handoff hay log.
-2. Đăng ký Stitch MCP cho từng CLI được giao role UI theo hướng dẫn chính thức
-   <https://stitch.withgoogle.com/docs/mcp/setup> (Antigravity: Agent Manager → MCP Servers → Stitch → Install).
-   Endpoint `https://stitch.googleapis.com/mcp` với header `X-Goog-Api-Key` chỉ thấy ở nguồn thứ ba; đối chiếu
-   trang chính thức trước khi dùng, ưu tiên cấu hình tham chiếu biến môi trường thay vì dán key.
-3. Cài skills cho CLI tương ứng bằng đúng lệnh trong README hiện hành của `google-labs-code/stitch-skills`
-   (lệnh và flag khác nhau theo CLI và phiên bản; không chép lại từ trí nhớ). Lệnh cài tải và chạy code từ mạng;
-   cài phạm vi project còn ghi file vào repo (ví dụ `.claude/`), ngoài `allowed_paths` của task UI. Vì vậy cần
-   người dùng đồng ý và, với phạm vi project, một task/scope riêng; ưu tiên phạm vi người dùng (global).
-4. Xác minh read-only: liệt kê MCP server của CLI và gọi một tool chỉ đọc (liệt kê project Stitch). Chưa xác
-   minh được thì ghi `unverified` và blocker cho task UI phụ thuộc; không tự thay công cụ khác.
+### Kết nối
+Mọi việc kết nối (API key, đăng ký Stitch MCP, cài `stitch-skills`, xác minh) do `/sdlc-setup` thực hiện theo
+`CONNECTIONS.md` của skill đó, trên từng execution host; project đã setup dùng `/sdlc-setup connect`. Worker và
+Orchestrator không tự đăng nhập, tạo key, đăng ký MCP hay cài skill. Trước khi giao task UI, Orchestrator kiểm tra
+read-only rằng CLI của role có Stitch MCP; thiếu thì ghi blocker trỏ về `/sdlc-setup connect`, không tự thay công cụ.
+API key là secret: không bao giờ xuất hiện trong repo, `.ai-sdlc/project.json`, task contract, spec, handoff hay log.
 
 ### Cách dùng trong SDLC
 - **Thiết kế (`ui-ux-designer`):** sinh hoặc chỉnh màn hình trong Stitch từ requirement/journey đã duyệt; lưu
@@ -40,8 +32,8 @@ officially supported Google product"), hỗ trợ Claude Code, Codex, Antigravit
 ## Rive (chuyển động cho mobile)
 
 Profile UI/UX và Frontend mô tả quy trình: `rive create`, kiểm tra bằng `rive <dir> --verify` và `rive inspect`,
-build asset bằng `--once`; `login`, `push`, `pull`, `library`, `--publish` và `build` chạm tài khoản Rive hoặc
-thiết bị nên cần người duyệt. Stack có `rive.yaml` được `sdlc.py init` phát hiện và thêm lệnh lint `--verify`.
+build asset bằng `--once`; `push`, `pull`, `library`, `--publish` và `build` chạm tài khoản Rive hoặc thiết bị nên
+cần người duyệt. Phiên đăng nhập Rive do `/sdlc-setup connect` lo; worker thiếu phiên thì ghi blocker. Stack có `rive.yaml` được `sdlc.py init` phát hiện và thêm lệnh lint `--verify`.
 
 ## Nguồn
 - Stitch MCP setup: <https://stitch.withgoogle.com/docs/mcp/setup>

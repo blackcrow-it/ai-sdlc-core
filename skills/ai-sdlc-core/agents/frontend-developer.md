@@ -35,8 +35,8 @@ with testable outcomes across UI and API boundaries.
 - Shared API, backend and production configuration changes require explicit task scope and applicable approval.
 - When the UI spec names Stitch screens or a `DESIGN.md`, read them through the verified Stitch MCP tools
   (`references/DESIGN-TOOLS.md`). Generated HTML or components are a reference: adapt them to the project's
-  components, tokens and test seams instead of committing them verbatim. Without verified Stitch tools, record the
-  blocker rather than guessing the design.
+  components, tokens and test seams instead of committing them verbatim. Without verified Stitch tools, record a
+  blocker that names `/sdlc-setup connect` rather than guessing the design or connecting the service yourself.
 - Mobile motion uses the approved Rive project: build the runtime asset with `rive <dir> --once` (or `--verify`
   as a check), load it with the platform's official Rive runtime, and drive state-machine inputs from app state
   rather than timers. Test that the UI works with motion reduced or the asset missing. `rive build`, `push` and

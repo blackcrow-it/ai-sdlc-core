@@ -1,0 +1,114 @@
+{
+  "task_id": "TASK-004",
+  "project_id": "PROJECT-AI-SDLC-CORE",
+  "title": "Move every third-party connection into /sdlc-setup",
+  "owner_agent": "devops-engineer",
+  "reviewer_agent": "code-reviewer",
+  "status": "submitted_for_review",
+  "risk_level": "medium",
+  "priority": "medium",
+  "dependencies": [
+    "TASK-003"
+  ],
+  "scope": {
+    "allowed_paths": [
+      "skills/sdlc-setup/CONNECTIONS.md",
+      ".ai-sdlc/tasks/TASK-004.json",
+      "skills/ai-sdlc-core/scripts/**",
+      "skills/ai-sdlc-core/references/DESIGN-TOOLS.md",
+      "skills/ai-sdlc-core/agents/ui-ux-designer.md",
+      "skills/ai-sdlc-core/agents/frontend-developer.md",
+      "tests/**",
+      "README.md",
+      "skills/ai-sdlc-core/SKILL.md",
+      "skills/sdlc-brief/SKILL.md",
+      "skills/sdlc-code-review/SKILL.md",
+      "skills/sdlc-codebase-design/SKILL.md",
+      "skills/sdlc-debugging/SKILL.md",
+      "skills/sdlc-domain-modeling/SKILL.md",
+      "skills/sdlc-grill/SKILL.md",
+      "skills/sdlc-grilling/SKILL.md",
+      "skills/sdlc-help/SKILL.md",
+      "skills/sdlc-implement/SKILL.md",
+      "skills/sdlc-implementation/SKILL.md",
+      "skills/sdlc-orchestrate/SKILL.md",
+      "skills/sdlc-plan/SKILL.md",
+      "skills/sdlc-prototype/SKILL.md",
+      "skills/sdlc-requirements-analysis/SKILL.md",
+      "skills/sdlc-research/SKILL.md",
+      "skills/sdlc-retro/SKILL.md",
+      "skills/sdlc-setup/SKILL.md",
+      "skills/sdlc-smoke/SKILL.md",
+      "skills/sdlc-spec/SKILL.md",
+      "skills/sdlc-status/SKILL.md",
+      "skills/sdlc-system-design/SKILL.md",
+      "skills/sdlc-task/SKILL.md",
+      "skills/sdlc-tdd/SKILL.md",
+      "skills/sdlc-testing/SKILL.md",
+      "skills/sdlc-triage/SKILL.md"
+    ],
+    "forbidden_actions": [
+      "deploy_production",
+      "edit_secrets",
+      "merge_protected_branch",
+      "force_push",
+      "destructive_migration",
+      "delete_data",
+      "disable_ci_or_branch_protection"
+    ]
+  },
+  "acceptance_criteria": [
+    "/sdlc-setup has a third-party connection step and a `connect` mode that runs on an already initialised project without re-initialising it.",
+    "skills/sdlc-setup/CONNECTIONS.md is the single procedure for connecting Stitch (MCP server, API key, stitch-skills), the Rive account and tracker CLIs: read-only discovery first, user consent for each machine change, interactive logins and secrets handled by the user outside chat and repository, verified/unverified/declined status per execution host.",
+    "Role profiles and references/DESIGN-TOOLS.md no longer instruct workers to log in, register MCP servers or install skills; a missing connection becomes a blocker that names /sdlc-setup connect.",
+    "sdlc.py doctor reports a missing tracker CLI, login or Jira connection with `/sdlc-setup connect` instead of a login command.",
+    "Bundled skill versions and core.json are 0.1.8; README documents the 0.1.7 -> 0.1.8 upgrade."
+  ],
+  "test_seams": [
+    "Bundled skill files and text contracts, plus environment.tracker_checks with mocked CLI lookups; tests do not log in, install or call third-party services."
+  ],
+  "documentation": {
+    "assessment": "Process change: third-party connections are owned by /sdlc-setup. Update the setup skill, DESIGN-TOOLS reference, two role profiles and README. No config/task schema change; requirement IDs are not applicable. The core.json version bump is a protected path; the named approver (Nguyen Quang Hung) approved it on 2026-10-26, and scope still reports that path.",
+    "updates": [
+      {
+        "path": "skills/sdlc-setup/SKILL.md",
+        "change": "Add the connection step and connect mode.",
+        "requirement_ids": []
+      },
+      {
+        "path": "skills/sdlc-setup/CONNECTIONS.md",
+        "change": "New connection procedures.",
+        "requirement_ids": []
+      },
+      {
+        "path": "skills/ai-sdlc-core/references/DESIGN-TOOLS.md",
+        "change": "Defer connection to /sdlc-setup.",
+        "requirement_ids": []
+      },
+      {
+        "path": "README.md",
+        "change": "Document the 0.1.8 upgrade.",
+        "requirement_ids": []
+      }
+    ]
+  },
+  "required_checks": [
+    "python skills/ai-sdlc-core/scripts/sdlc.py validate --bundled --task examples/task-auth.json",
+    "python -m unittest discover -s tests -v"
+  ],
+  "deliverables": [
+    "skills/sdlc-setup/CONNECTIONS.md",
+    "Setup connect step and mode",
+    "Role/reference updates",
+    "Regression tests",
+    "Core 0.1.8 and upgrade documentation"
+  ],
+  "max_attempts": 2,
+  "human_approval_required": true,
+  "input_artifacts": [
+    "skills/sdlc-setup/SKILL.md",
+    "skills/ai-sdlc-core/references/DESIGN-TOOLS.md"
+  ],
+  "orca_run_id": null,
+  "evidence_paths": []
+}
