@@ -22,7 +22,7 @@ core, including this one. Reply to the user in Vietnamese unless requested other
 <!-- ai-sdlc-core:begin -->
 ## AI SDLC Core (managed by `sdlc.py`; edit `.ai-sdlc/project.json` instead of this block)
 
-This repository is governed by **AI SDLC Core v0.1.0** (Agent Skill `ai-sdlc-core`). It stores only
+This repository is governed by **AI SDLC Core v0.1.6** (Agent Skill `ai-sdlc-core`). It stores only
 project-specific configuration; roles, workflows, policies, templates and schemas come from the installed core.
 
 - Reply to the user in Vietnamese unless asked otherwise; technical artifacts may be in English.
@@ -39,6 +39,8 @@ project-specific configuration; roles, workflows, policies, templates and schema
 - Domain language: `GLOSSARY.md` (or `GLOSSARY-MAP.md`) and decisions in `docs/adr/`, created lazily; use their terms.
 - Task contracts live only in the tracker named by `tracker` in `.ai-sdlc/project.json`; the conventions are in core
   `references/trackers/<provider>.md`. Never keep a second copy elsewhere.
+- For every feature/change, follow core `references/DOCUMENTATION-CONTINUITY.md`: maintain applicable canonical
+  documents and requirement-to-evidence links; run `sdlc.py docs-check --task <contract> --base <base>` before closure.
 - One task per worker or session. Before reporting done, run the relevant `commands` from `.ai-sdlc/project.json` and
   `sdlc.py scope --task <contract>`, and cite real changed paths and exit codes.
 <!-- ai-sdlc-core:end -->

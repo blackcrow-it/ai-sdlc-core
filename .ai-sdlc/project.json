@@ -1,6 +1,6 @@
 {
   "schema_version": "0.1",
-  "core_version": "0.1.0",
+  "core_version": "0.1.6",
   "project": {
     "id": "PROJECT-AI-SDLC-CORE",
     "name": "AI SDLC Core",
@@ -114,6 +114,73 @@
   },
   "orca": {
     "agent": "claude",
+    "role_agents": {
+      "orchestrator": "claude",
+      "software-architect": "claude",
+      "security-engineer": "claude",
+      "code-reviewer": "claude",
+      "product-manager": "claude",
+      "business-analyst": "claude",
+      "project-manager": "claude",
+      "ui-ux-designer": "claude",
+      "technical-writer": "claude",
+      "backend-developer": "codex",
+      "database-engineer": "codex",
+      "devops-engineer": "codex",
+      "frontend-developer": "antigravity",
+      "qa-engineer": "antigravity"
+    },
+    "role_models": {
+      "orchestrator": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "software-architect": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "security-engineer": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "code-reviewer": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "product-manager": {
+        "model": "claude-sonnet-5-5"
+      },
+      "business-analyst": {
+        "model": "claude-sonnet-5-5"
+      },
+      "project-manager": {
+        "model": "claude-sonnet-5-5"
+      },
+      "ui-ux-designer": {
+        "model": "claude-sonnet-5-5"
+      },
+      "technical-writer": {
+        "model": "claude-haiku-5-5"
+      },
+      "backend-developer": {
+        "model": "gpt-6.1-sol",
+        "effort": "high"
+      },
+      "database-engineer": {
+        "model": "gpt-6.1-sol",
+        "effort": "high"
+      },
+      "devops-engineer": {
+        "model": "gpt-6.1-sol",
+        "effort": "high"
+      },
+      "frontend-developer": {
+        "model": "gemini-3.8-flash-high"
+      },
+      "qa-engineer": {
+        "model": "gemini-3.8-flash-medium"
+      }
+    },
     "worktree_strategy": "per-task",
     "max_parallel_workers": 2
   },
